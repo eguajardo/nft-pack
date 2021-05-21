@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.3;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -96,7 +97,7 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
      */
     function mintFromBlueprint(address to, address blueprintAuthor, uint16 blueprintIndex) public virtual {
         require (hasRole(MINTER_ROLE, _msgSender()), "ERROR_UNAUTHORIZED_MINTER");
-        // TODO: verifies blueprint exist
+        require (_isNotEmptyString(_mapAuthorToBlueprints[blueprintAuthor][blueprintIndex].title), "ERROR_INVALID_BLUEPRINT");
 
         BlueprintKey memory key = BlueprintKey(blueprintAuthor, blueprintIndex);
         _mapTokenIdToBlueprintKey[_tokenIdCounter] = key;
@@ -111,7 +112,7 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
     /**
      * @dev Returns true if the string is not empty or false otherwise
      */
-    function _isNotEmptyString(string calldata _string) internal pure returns (bool) {
+    function _isNotEmptyString(string memory _string) internal pure returns (bool) {
         return keccak256(abi.encodePacked(_string)) != keccak256(abi.encodePacked(""));
     }
 
