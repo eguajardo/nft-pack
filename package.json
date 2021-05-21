@@ -1,0 +1,33 @@
+{
+  "name": "nft-pack",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eguajardo/nft-pack"
+  },
+  "author": "eguajardo",
+  "bugs": {
+    "url": "https://github.com/eguajardo/nft-pack/issues"
+  },
+  "homepage": "https://github.com/eguajardo/nft-pack#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^14.14.35",
+    "chai": "^4.3.4",
+    "dotenv": "^8.2.0",
+    "ethereum-waffle": "^3.3.0",
+    "ethers": "^5.0.32",
+    "hardhat": "^2.1.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.1.0"
+  }
+}
