@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract } from "@ethersproject/contracts";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ContractFactory } from "ethers";
+import { BigNumber, ContractFactory } from "ethers";
 
 describe("Token contract", () => {
     const TITLE: string = "NFT Title";
@@ -44,8 +44,7 @@ describe("Token contract", () => {
     });
 
     it('Mints NFT token', async() => {
-        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
-        await blueprintTx.wait();
+        await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
 
         const tx: TransactionResponse = await token.connect(minterSigner).mintFromBlueprint(
             signers[2].address,     // receptor
@@ -56,11 +55,13 @@ describe("Token contract", () => {
         await expect(tx)
             .to.emit(token, "Minted")
             .withArgs(0, signers[2].address, authorSigner.address, 0);
+        
+        const balance: BigNumber = await token.balanceOf(signers[2].address);
+        expect(balance.toNumber()).to.equals(1);
     });
 
     it('Fails minting without minter role', async() => {
-        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
-        await blueprintTx.wait();
+        await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
 
         const tx: Promise<TransactionResponse> = token.mintFromBlueprint(
             signers[2].address,     // receptor
@@ -73,8 +74,7 @@ describe("Token contract", () => {
     });
 
     it("Fails when author doesn't exists", async() => {
-        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
-        await blueprintTx.wait();
+        await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
 
         const tx: Promise<TransactionResponse> = token.connect(minterSigner).mintFromBlueprint(
             signers[2].address,     // receptor
@@ -95,6 +95,24 @@ describe("Token contract", () => {
 
         await expect(tx)
             .to.be.revertedWith("ERROR_INVALID_BLUEPRINT");
+    });
+
+    it('Returns correct tokenURI', async() => {
+        await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
+
+        const tx: TransactionResponse = await token.connect(minterSigner).mintFromBlueprint(
+            signers[2].address,     // receptor
+            authorSigner.address,   // author
+            0                       // blueprint index
+        );
+
+        const uri: string = await token.tokenURI(0);
+        expect(uri).to.equals("https://ipfs.infura.io/ipfs/" + IPFS_PATH);
+    });
+
+    it("Fails with invalid tokenID", async() => {
+        await expect(token.tokenURI(0))
+            .to.be.revertedWith("ERROR_INVALID_TOKEN_ID");
     });
 
 });

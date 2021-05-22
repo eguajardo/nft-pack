@@ -110,6 +110,29 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
     }
 
     /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERROR_INVALID_TOKEN_ID");
+
+        BlueprintKey memory key = _mapTokenIdToBlueprintKey[tokenId];
+        string memory ipfsPath = _mapAuthorToBlueprints[key.author][key.blueprint].ipfsPath;
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0
+            ? string(abi.encodePacked(baseURI, ipfsPath))
+            : '';
+    }
+
+    /**
+     * @dev Base URI for computing {tokenURI}. Empty by default, can be overriden
+     * in child contracts.
+     */
+    function _baseURI() internal view virtual override returns (string memory) {
+        return "https://ipfs.infura.io/ipfs/";
+    }
+
+    /**
      * @dev Returns true if the string is not empty or false otherwise
      */
     function _isNotEmptyString(string memory _string) internal pure returns (bool) {
