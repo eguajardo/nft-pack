@@ -12,6 +12,8 @@ describe("Token contract", () => {
 
     let token: Contract;
     let signers: SignerWithAddress[]
+    let authorSigner: SignerWithAddress;
+    let minterSigner: SignerWithAddress;    
 
     beforeEach(async () => {
         signers = await ethers.getSigners();
@@ -19,7 +21,11 @@ describe("Token contract", () => {
             "Token",
             signers[0]
         );
-        token = await tokenFactory.deploy("TOKEN", "TKN", signers[1].address);
+
+        authorSigner = signers[0];
+        minterSigner = signers[1];
+
+        token = await tokenFactory.deploy("TOKEN", "TKN", minterSigner.address);
         await token.deployed();
     });
 
@@ -28,14 +34,67 @@ describe("Token contract", () => {
 
         await expect(tx)
             .to.emit(token, "BlueprintCreated")
-            .withArgs(signers[0].address, 0);
+            .withArgs(authorSigner.address, 0);
     });
 
     it('Fails blueprint creation with empty title', async() => {
-        const tx: TransactionResponse = await token.createBlueprint("", DESCRIPTION, IPFS_PATH);
+        // this only works with automining. In case of mining delays, we have to wait
+        await expect(token.createBlueprint("", DESCRIPTION, IPFS_PATH))
+            .to.be.revertedWith("ERROR_EMPTY_TITLE");
+    });
 
-        await expect(tx.wait())
-            .to.be.reverted;
+    it('Mints NFT token', async() => {
+        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
+        await blueprintTx.wait();
+
+        const tx: TransactionResponse = await token.connect(minterSigner).mintFromBlueprint(
+            signers[2].address,     // receptor
+            authorSigner.address,   // author
+            0                       // blueprint index
+        );
+
+        await expect(tx)
+            .to.emit(token, "Minted")
+            .withArgs(0, signers[2].address, authorSigner.address, 0);
+    });
+
+    it('Fails minting without minter role', async() => {
+        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
+        await blueprintTx.wait();
+
+        const tx: Promise<TransactionResponse> = token.mintFromBlueprint(
+            signers[2].address,     // receptor
+            authorSigner.address,   // author
+            0                       // blueprint index
+        );
+
+        await expect(tx)
+            .to.be.revertedWith("ERROR_UNAUTHORIZED_MINTER");
+    });
+
+    it("Fails when author doesn't exists", async() => {
+        const blueprintTx: TransactionResponse = await token.createBlueprint(TITLE, DESCRIPTION, IPFS_PATH);
+        await blueprintTx.wait();
+
+        const tx: Promise<TransactionResponse> = token.connect(minterSigner).mintFromBlueprint(
+            signers[2].address,     // receptor
+            signers[2].address,     // author
+            0                       // blueprint index
+        );
+
+        await expect(tx)
+            .to.be.revertedWith("ERROR_INVALID_BLUEPRINT");
+    });
+
+    it("Fails when blueprint doesn't exists", async() => {
+        const tx: Promise<TransactionResponse> = token.connect(minterSigner).mintFromBlueprint(
+            signers[2].address,     // receptor
+            authorSigner.address,   // author
+            0                       // blueprint index
+        );
+
+        await expect(tx)
+            .to.be.revertedWith("ERROR_INVALID_BLUEPRINT");
     });
 
 });

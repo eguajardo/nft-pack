@@ -12,12 +12,6 @@ const config: HardhatUserConfig = {
     compilers: [{ version: "0.8.3", settings: {} }],
   },
   networks: {
-    hardhat: {
-      mining: {
-        auto: false,
-        interval: 10000
-      },
-    },
     ropsten: {
       url: "https://ropsten.infura.io/v3/ffb37bda4b4f4641923589a663bdee8f",
       accounts: [process.env.ROPSTEN_ACCOUNT_1!, process.env.ROPSTEN_ACCOUNT_2!, process.env.ROPSTEN_ACCOUNT_3!, process.env.ROPSTEN_ACCOUNT_4!, process.env.ROPSTEN_ACCOUNT_5!]
