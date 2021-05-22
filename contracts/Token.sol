@@ -75,8 +75,8 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
             string calldata description,
             string calldata ipfsPath) external returns (uint16){
 
-        require (_isNotEmptyString(title), "ERROR_EMPTY_IPFS_TITLE");
-        require (_isNotEmptyString(description), "ERROR_EMPTY_IPFS_DESCRIPTION");
+        require (_isNotEmptyString(title), "ERROR_EMPTY_TITLE");
+        require (_isNotEmptyString(description), "ERROR_EMPTY_DESCRIPTION");
         require (_isNotEmptyString(ipfsPath), "ERROR_EMPTY_IPFS_PATH");
 
         TokenBlueprint memory blueprint = TokenBlueprint(title, description, ipfsPath);
