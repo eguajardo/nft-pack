@@ -1,8 +1,20 @@
 import { Contract, ContractFactory } from "@ethersproject/contracts";
 import { artifacts, ethers, network } from "hardhat";
 
-async function main() {
+async function main() {    
     console.log("Deploying to network:", network.name);
+
+    let vrfCoordinatorAddress: string | undefined = process.env[`${network.name.toUpperCase()}_CHAINLINK_VRFCOORDINATOR`];
+    let linkAddress: string | undefined = process.env[`${network.name.toUpperCase()}_CHAINLINK_LINK_CONTRACT`];
+    let keyHash: string | undefined = process.env[`${network.name.toUpperCase()}_CHAINLINK_KEY_HASH`];
+    let chainlinkFee: Number | undefined = Number(process.env[`${network.name.toUpperCase()}_CHAINLINK_FEE`]) * 10 ** 18; // convert to integer according to LINK decimals
+
+    // Mock coordinator if deploying locally
+    if (network.name === 'hardhat' || network.name === 'localhost') {        
+
+        vrfCoordinatorAddress = await mockVrfCoordinator(linkAddress);
+        chainlinkFee = 0;
+    }
 
     const Utils: ContractFactory = await ethers.getContractFactory("Utils");
     const utils: Contract = await Utils.deploy();
@@ -16,11 +28,49 @@ async function main() {
             }
         }
     );
-    const tokenPack: Contract = await TokenPack.deploy("NFT Packed", "NFTP");
+    const tokenPack: Contract = await TokenPack.deploy(
+        "NFT Packed", "NFTP",
+        vrfCoordinatorAddress, linkAddress, keyHash, chainlinkFee
+    );
     await tokenPack.deployed();
 
-    console.log("Contract Address:", tokenPack.address);
-    console.log("Contract Hash:", tokenPack.deployTransaction.hash);
+    if (network.name === 'hardhat' || network.name === 'localhost') {
+        await loadTestBlueprints(utils, tokenPack);
+    }
+
+    console.log("Utils contract address:", utils.address);
+    console.log("TokenPack contract Address:", tokenPack.address);
+    console.log("Token contract address:", await tokenPack.getTokenContractAddress());
+}
+
+async function mockVrfCoordinator(linkAddress: string | undefined) {
+    const vrfCoordinatorFactory: ContractFactory = await ethers.getContractFactory(
+        "VRFCoordinatorMock"
+    );
+    const vrfCoordinator = await vrfCoordinatorFactory.deploy(linkAddress);
+    await vrfCoordinator.deployed();
+
+    return vrfCoordinator.address;
+}
+
+async function loadTestBlueprints(utils: Contract, tokenPack: Contract) {
+    const tokenFactory: ContractFactory = await ethers.getContractFactory(
+        "Token",
+        {
+            libraries: {
+                Utils: utils.address
+            }
+        }
+    );
+    const token = tokenFactory.attach(await tokenPack.getTokenContractAddress());
+    const blueprints: object[] = [];
+    const signers = await ethers.getSigners();
+
+    for (let i = 0; i < 20; i++) {
+        await token.createBlueprint("TITLE_" + i, "DESCRIPTION_" + i, "IPFS_PATH_" + i);
+        blueprints.push({ author: signers[0].address, blueprint: i });
+        console.log("Created test blueprint", i, signers[0].address);
+    }
 }
 
 main()

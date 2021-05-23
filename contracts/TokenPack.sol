@@ -17,7 +17,7 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
     using Strings for uint256;
 
     bytes32 internal keyHash;
-    uint256 internal oracleFee;
+    uint256 internal chainlinkFee;
 
     uint256 internal randomResult;
 
@@ -36,14 +36,14 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
             address vrfCoordinator, 
             address linkToken,
             bytes32 keyHash_,
-            uint256 oracleFee_
+            uint256 chainlinkFee_
         ) VRFConsumerBase (
             vrfCoordinator,
             linkToken
         ) 
     { 
         keyHash = keyHash_;
-        oracleFee = oracleFee_;
+        chainlinkFee = chainlinkFee_;
         tokenContract = new Token(name, symbol, address(this));
     }
     
@@ -200,9 +200,9 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
      * @dev Requests random number from chainlink to generate content of pack
      */
     function _requestRandomTokens(uint256 userProvidedSeed) internal returns (bytes32 requestId) {
-        require (LINK.balanceOf(address(this)) >= oracleFee, "ERROR_NOT_ENOUGH_LINK");
+        require (LINK.balanceOf(address(this)) >= chainlinkFee, "ERROR_NOT_ENOUGH_LINK");
 
-        return requestRandomness(keyHash, oracleFee, userProvidedSeed);
+        return requestRandomness(keyHash, chainlinkFee, userProvidedSeed);
     }
 
     /**
