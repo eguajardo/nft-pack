@@ -1,17 +1,22 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract } from "@ethersproject/contracts";
-import { TransactionResponse } from "@ethersproject/abstract-provider";
+import { TransactionResponse, TransactionReceipt } from "@ethersproject/abstract-provider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber, ContractFactory } from "ethers";
 
 describe("TokenPack contract", () => {
+    const LINK_ADDRESS: string = "0x326c977e6efc84e512bb9c30f76e30c160ed06fb";
+    const KEY_HASH: string = "0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4";
+    const ORACLE_FEE: Number = 0;
+    
     const NAME: string = "Collection Name";
     const DESCRIPTION: string = "Collection Description";
     const PRICE: Number = 1;
     const CAPACITY: Number = 5;
 
     let tokenPack: Contract;
+    let vrfCoordinator: Contract;
     let signers: SignerWithAddress[];
     let packerSigner: SignerWithAddress;
     let authorSigner: SignerWithAddress;
@@ -29,6 +34,13 @@ describe("TokenPack contract", () => {
         const utils = await utilsFactory.deploy();
         await utils.deployed();
 
+        const vrfCoordinatorFactory: ContractFactory = await ethers.getContractFactory(
+            "VRFCoordinatorMock",
+            signers[0]
+        );
+        vrfCoordinator = await vrfCoordinatorFactory.deploy(LINK_ADDRESS);
+        await vrfCoordinator.deployed();
+
         const tokenPackFactory: ContractFactory = await ethers.getContractFactory(
             "TokenPack",
             {
@@ -39,7 +51,10 @@ describe("TokenPack contract", () => {
             }
         );
 
-        tokenPack = await tokenPackFactory.deploy("TOKEN", "TKN");
+        tokenPack = await tokenPackFactory.deploy(
+            "TOKEN", "TKN",
+            vrfCoordinator.address, LINK_ADDRESS, KEY_HASH, ORACLE_FEE
+        );
         await tokenPack.deployed();
 
         const tokenFactory: ContractFactory = await ethers.getContractFactory(
@@ -101,13 +116,26 @@ describe("TokenPack contract", () => {
             NAME, DESCRIPTION, PRICE, CAPACITY, await blueprintGenerator(20)
         );
 
+        // Non state changing call just to preview the requestId
+        const requestId = await tokenPack.callStatic.buyPack(
+            packerSigner.address, 0
+        )
+
         const tx: TransactionResponse = await tokenPack.buyPack(
             packerSigner.address, 0
         );
 
         await expect(tx)
-            .to.emit(tokenPack, "PackBought")
-            .withArgs(packerSigner.address, packerSigner.address, 0);
+            .to.emit(tokenPack, "PurchaseOrdered")
+            .withArgs(packerSigner.address, packerSigner.address, 0, requestId);
+
+        const vrfTx: TransactionResponse =  await vrfCoordinator.callBackWithRandomness(
+            requestId, 777, tokenPack.address
+        );
+
+        await expect(vrfTx)
+            .to.emit(tokenPack, "PackOpened")
+            .withArgs(requestId, packerSigner.address);
     });
 
     it('Fails buying invalid collection', async () => {
