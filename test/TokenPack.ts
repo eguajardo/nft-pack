@@ -95,4 +95,23 @@ describe("TokenPack contract", () => {
         await expect(tokenPack.createTokenCollection(NAME, DESCRIPTION, PRICE, CAPACITY, await blueprintGenerator(19)))
             .to.be.revertedWith("ERROR_BLUEPRINTS_UNDER_LIMIT");
     });
+
+    it('Buys pack successfully', async () => {
+        await tokenPack.createTokenCollection(
+            NAME, DESCRIPTION, PRICE, CAPACITY, await blueprintGenerator(20)
+        );
+
+        const tx: TransactionResponse = await tokenPack.buyPack(
+            packerSigner.address, 0
+        );
+
+        await expect(tx)
+            .to.emit(tokenPack, "PackBought")
+            .withArgs(packerSigner.address, packerSigner.address, 0);
+    });
+
+    it('Fails buying invalid collection', async () => {
+        await expect(tokenPack.buyPack(packerSigner.address, 0))
+            .to.be.revertedWith("ERROR_INVALID_COLLECTION");
+    });
 });

@@ -118,6 +118,7 @@ contract TokenPack is Context, ICommonStructs {
         // TODO: income amount split
 
         TokenCollection storage collection = _mapPackerToCollection[packer][collectionIndex];
+        require(Utils.isNotEmptyString(collection.name), "ERROR_INVALID_COLLECTION");
 
         // TODO: get random number from Chainlink
         uint256 randomNumber = 1000;
