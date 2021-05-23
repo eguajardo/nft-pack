@@ -12,9 +12,9 @@ const config: HardhatUserConfig = {
     compilers: [{ version: "0.8.3", settings: {} }],
   },
   networks: {
-    ropsten: {
-      url: "https://ropsten.infura.io/v3/ffb37bda4b4f4641923589a663bdee8f",
-      accounts: [process.env.ROPSTEN_ACCOUNT_1!, process.env.ROPSTEN_ACCOUNT_2!, process.env.ROPSTEN_ACCOUNT_3!, process.env.ROPSTEN_ACCOUNT_4!, process.env.ROPSTEN_ACCOUNT_5!]
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [process.env.MUMBAI_ACCOUNT_1!, process.env.MUMBAI_ACCOUNT_2!, process.env.MUMBAI_ACCOUNT_3!, process.env.MUMBAI_ACCOUNT_4!, process.env.MUMBAI_ACCOUNT_5!]
     }
   }
 };
