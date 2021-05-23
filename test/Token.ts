@@ -4,6 +4,7 @@ import { Contract } from "@ethersproject/contracts";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber, ContractFactory } from "ethers";
+import { FactoryOptions } from "hardhat/types";
 
 describe("Token contract", () => {
     const TITLE: string = "NFT Title";
@@ -17,13 +18,25 @@ describe("Token contract", () => {
 
     beforeEach(async () => {
         signers = await ethers.getSigners();
-        const tokenFactory: ContractFactory = await ethers.getContractFactory(
-            "Token",
-            signers[0]
-        );
-
         authorSigner = signers[0];
         minterSigner = signers[1];
+
+        const utilsFactory: ContractFactory = await ethers.getContractFactory(
+            "Utils",
+            signers[0]
+        )
+        const utils = await utilsFactory.deploy();
+        await utils.deployed();
+
+        const tokenFactory: ContractFactory = await ethers.getContractFactory(
+            "Token",
+            {
+                signer: signers[0],
+                libraries: {
+                    Utils: utils.address
+                }
+            }
+        );
 
         token = await tokenFactory.deploy("TOKEN", "TKN", minterSigner.address);
         await token.deployed();

@@ -4,16 +4,19 @@ pragma solidity ^0.8.3;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
+import "./ICommonStructs.sol";
+import "./Utils.sol";
+
 /**
  * @title Token
  * @notice The ERC721 that is hold by packs. Tokens are created from author's blueprints
  */
-contract Token is ERC721URIStorage, AccessControlEnumerable {
+contract Token is ERC721URIStorage, AccessControlEnumerable, ICommonStructs {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
+     * @dev Initializes the contract by setting a `name` and a `symbol` and `minter` for the token.
      */
     constructor (string memory name_, string memory symbol_, address minter) ERC721(name_, symbol_) { 
         _setupRole(MINTER_ROLE, minter);
@@ -26,14 +29,6 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
         string title;
         string description;
         string ipfsPath;
-    }
-
-    /**
-     * @notice Struct representing the key to find a specific blueprint
-     */
-    struct BlueprintKey {
-        address author;
-        uint16 blueprint;
     }
 
     /**
@@ -55,12 +50,12 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
     mapping (uint256 => BlueprintKey) private _mapTokenIdToBlueprintKey;
 
     /**
-     * Emitted when the 'author' creates the a blueprint with index 'blueprintIndex'
+     * @notice Emitted when the 'author' creates the a blueprint with index 'blueprintIndex'
      */
     event BlueprintCreated(address indexed author, uint16 indexed blueprintIndex);
 
     /**
-     * Emitted when the 'tokenId' is minted and transfered to the 'owner' using the blueprint index 'blueprintIndex' from author 'author'
+     * @notice Emitted when the 'tokenId' is minted and transfered to the 'owner' using the blueprint index 'blueprintIndex' from author 'author'
      */
     event Minted(uint256 tokenId, address owner, address indexed author, uint16 indexed blueprintIndex);
 
@@ -73,11 +68,11 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
      */
     function createBlueprint(string calldata title,
             string calldata description,
-            string calldata ipfsPath) external returns (uint16){
+            string calldata ipfsPath) external returns (uint16) {
 
-        require (_isNotEmptyString(title), "ERROR_EMPTY_TITLE");
-        require (_isNotEmptyString(description), "ERROR_EMPTY_DESCRIPTION");
-        require (_isNotEmptyString(ipfsPath), "ERROR_EMPTY_IPFS_PATH");
+        require (Utils.isNotEmptyString(title), "ERROR_EMPTY_TITLE");
+        require (Utils.isNotEmptyString(description), "ERROR_EMPTY_DESCRIPTION");
+        require (Utils.isNotEmptyString(ipfsPath), "ERROR_EMPTY_IPFS_PATH");
 
         TokenBlueprint memory blueprint = TokenBlueprint(title, description, ipfsPath);
 
@@ -97,7 +92,7 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
      */
     function mintFromBlueprint(address to, address blueprintAuthor, uint16 blueprintIndex) public virtual {
         require (hasRole(MINTER_ROLE, _msgSender()), "ERROR_UNAUTHORIZED_MINTER");
-        require (_isNotEmptyString(_mapAuthorToBlueprints[blueprintAuthor][blueprintIndex].title), "ERROR_INVALID_BLUEPRINT");
+        require (Utils.isNotEmptyString(_mapAuthorToBlueprints[blueprintAuthor][blueprintIndex].title), "ERROR_INVALID_BLUEPRINT");
 
         BlueprintKey memory key = BlueprintKey(blueprintAuthor, blueprintIndex);
         _mapTokenIdToBlueprintKey[_tokenIdCounter] = key;
@@ -130,13 +125,6 @@ contract Token is ERC721URIStorage, AccessControlEnumerable {
      */
     function _baseURI() internal view virtual override returns (string memory) {
         return "https://ipfs.infura.io/ipfs/";
-    }
-
-    /**
-     * @dev Returns true if the string is not empty or false otherwise
-     */
-    function _isNotEmptyString(string memory _string) internal pure returns (bool) {
-        return keccak256(abi.encodePacked(_string)) != keccak256(abi.encodePacked(""));
     }
 
     /**
