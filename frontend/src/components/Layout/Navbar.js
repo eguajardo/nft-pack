@@ -1,6 +1,12 @@
+import { useEthers, useEtherBalance } from "@usedapp/core";
+import { formatEther } from "@ethersproject/units";
+
 import { NavLink } from "react-router-dom";
 
 function Navbar() {
+  const { activateBrowserWallet, account } = useEthers();
+  const userBalance = useEtherBalance(account);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
       <div className="container">
@@ -33,6 +39,21 @@ function Navbar() {
             >
               Buy Booster Packs
             </NavLink>
+            <div>
+              {!account && (
+                <button
+                  className="btn btn-outline-info nav-item nav-link px-4 ml-2"
+                  onClick={activateBrowserWallet}
+                >
+                  Connect
+                </button>
+              )}
+              {userBalance && (
+                <div className="nav-item nav-link">
+                  Balance: {formatEther(userBalance)} MATIC
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

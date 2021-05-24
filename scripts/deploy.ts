@@ -9,11 +9,15 @@ async function main() {
     let keyHash: string | undefined = process.env[`${network.name.toUpperCase()}_CHAINLINK_KEY_HASH`];
     let chainlinkFee: Number | undefined = Number(process.env[`${network.name.toUpperCase()}_CHAINLINK_FEE`]) * 10 ** 18; // convert to integer according to LINK decimals
 
-    // Mock coordinator if deploying locally
+    let multicallAddress;
+
+    // Mock contracts for local testing
     if (network.name === 'hardhat' || network.name === 'localhost') {        
 
         vrfCoordinatorAddress = await mockVrfCoordinator(linkAddress);
         chainlinkFee = 0;
+
+        multicallAddress = await mockMulticall();
     }
 
     const Utils: ContractFactory = await ethers.getContractFactory("Utils");
@@ -39,6 +43,7 @@ async function main() {
     }
 
     console.log("Utils contract address:", utils.address);
+    console.log("Multicall contract address:", multicallAddress);
     console.log("TokenPack contract Address:", tokenPack.address);
     console.log("Token contract address:", await tokenPack.getTokenContractAddress());
 }
@@ -51,6 +56,16 @@ async function mockVrfCoordinator(linkAddress: string | undefined) {
     await vrfCoordinator.deployed();
 
     return vrfCoordinator.address;
+}
+
+async function mockMulticall() {
+    const multicallFactory: ContractFactory = await ethers.getContractFactory(
+        "contracts/test/Multicall.sol:Multicall"
+    );
+    const multicall = await multicallFactory.deploy();
+    await multicall.deployed();
+
+    return multicall.address;
 }
 
 async function loadTestBlueprints(utils: Contract, tokenPack: Contract) {
