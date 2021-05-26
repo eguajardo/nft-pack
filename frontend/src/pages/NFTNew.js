@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { uploadFileToIPFS } from "../utils/ipfs-utils";
+import { uploadFileToIPFS, uploadJsonToIPFS } from "../utils/ipfs-utils";
 import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../utils/contracts-utils";
 import { utils } from "ethers";
@@ -104,8 +104,16 @@ function NFTNew() {
       return;
     }
 
-    const ipfsPath = await uploadFileToIPFS(enteredFile);
-    sendCreateBlueprint(enteredTitle, enteredDescription, ipfsPath);
+    const imageIpfsPath = await uploadFileToIPFS(enteredFile);
+
+    const metadata = {
+      title: enteredTitle,
+      description: enteredDescription,
+      imageIPFS: imageIpfsPath
+    }
+
+    const metadataIpfsPath = await uploadJsonToIPFS(metadata);
+    sendCreateBlueprint(enteredTitle, enteredDescription, metadataIpfsPath);
 
     titleInputRef.current.value = "";
     descriptionInputRef.current.value = "";

@@ -29,14 +29,29 @@ const readFileAsBuffer = (file) => {
  * Reads a file and uploads it to IPFS
  * 
  * @param {File} file The file object to upload to IPFS
- * @returns 
+ * @returns the IPFS path where the file was uploaded
  */
 export const uploadFileToIPFS = async (file) => {
     const fileBuffer = await readFileAsBuffer(file);
 
     const response = await ipfs.files.add(fileBuffer);
 
-    console.log("IPFS response:", response);
+    console.log("IPFS file uploaded:", response);
+    return response[0].path;
+}
+
+/**
+ * Uploads an object to IPFS
+ * 
+ * @param {object} json The object to upload
+ * @returns the IPFS path where the object was uploaded
+ */
+export const uploadJsonToIPFS = async (json) => {
+    const jsonString = JSON.stringify(json, null, 2);
+
+    const response = await ipfs.add(Buffer.from(jsonString));
+
+    console.log("IPFS JSON uploaded:", response);
     return response[0].path;
 }
 

@@ -100,7 +100,7 @@ async function loadTestBlueprints(utils: Contract, tokenPack: Contract) {
     await token.createBlueprint(
       "TITLE_" + i,
       "DESCRIPTION_" + i,
-      "IPFS_PATH_" + i
+      "QmSsdhTt5QDqcQBNazUFajxET4FqGevvuCxoXoFhezUSZW"
     );
     blueprints.push({ author: signers[0].address, blueprint: i });
     console.log("Created test blueprint", i, signers[0].address);
