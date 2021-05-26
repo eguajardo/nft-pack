@@ -13,7 +13,7 @@ function NFTNew() {
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
     disabled: false,
-    text: "Submit NFT blueprint",
+    text: "Submit NFT",
     status: "None",
   });
 
@@ -34,7 +34,7 @@ function NFTNew() {
       transactionName: "New blueprint",
     }
   );
-  
+
   console.log(ethTxState);
 
   if (buttonState.status !== ethTxState.status) {
