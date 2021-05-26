@@ -29,7 +29,7 @@ function Navbar() {
               activeClassName="active"
               to="/nfts"
             >
-              Browse NFTs
+              Browse NFT catalog
             </NavLink>
             <NavLink
               id="new-link"

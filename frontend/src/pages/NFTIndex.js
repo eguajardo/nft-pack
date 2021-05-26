@@ -5,7 +5,7 @@ function NFTIndex() {
     <div>
       <div id="actions" className="container mb-3 d-flex flex-row-reverse">
         <Link className="btn btn-outline-info" to="/nfts/new">
-          Add NFT
+          Create NFT blueprint
         </Link>
       </div>
       <div className="container content-container">
