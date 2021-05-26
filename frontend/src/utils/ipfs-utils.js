@@ -35,7 +35,9 @@ export const uploadFileToIPFS = async (file) => {
     const fileBuffer = await readFileAsBuffer(file);
 
     const response = await ipfs.files.add(fileBuffer);
-    return response.path;
+
+    console.log("IPFS response:", response);
+    return response[0].path;
 }
 
 export default ipfs;

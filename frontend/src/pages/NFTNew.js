@@ -1,17 +1,79 @@
-import { useRef, useState } from 'react';
-import { uploadFileToIPFS } from '../utils/ipfs-utils'
+import { useRef, useState } from "react";
+import { uploadFileToIPFS } from "../utils/ipfs-utils";
+import { Contract } from "@ethersproject/contracts";
+import { contracts } from "../utils/contracts-utils";
+import { utils } from "ethers";
+import { useContractFunction } from "@usedapp/core";
 
 function NFTNew() {
   const titleInputRef = useRef();
   const descriptionInputRef = useRef();
   const fileInputRef = useRef();
 
+  const [buttonState, setButtonState] = useState({
+    class: "btn btn-primary btn-lg btn-block",
+    disabled: false,
+    text: "Submit NFT blueprint",
+    status: "None",
+  });
+
   const [enteredTitleIsValid, setEnteredTitleIsValid] = useState(true);
-  const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] = useState(true);
+  const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
+    useState(true);
   const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
+
+  const tokenContract = new Contract(
+    contracts.Token.address,
+    new utils.Interface(contracts.Token.abi)
+  );
+
+  const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
+    tokenContract,
+    "createBlueprint",
+    {
+      transactionName: "New blueprint",
+    }
+  );
+  
+  console.log(ethTxState);
+
+  if (buttonState.status !== ethTxState.status) {
+    if (ethTxState.status === "Success") {
+      setButtonState({
+        class: "btn btn-success btn-lg btn-block",
+        disabled: true,
+        text: "Success!",
+        status: ethTxState.status,
+      });
+    } else if (
+      ethTxState.status === "Exception" ||
+      ethTxState.status === "Fail"
+    ) {
+      setButtonState({
+        class: "btn btn-danger btn-lg btn-block",
+        disabled: true,
+        text: "Failure",
+        status: ethTxState.status,
+      });
+    } else if (ethTxState.status === "Mining") {
+      setButtonState({
+        class: "btn btn-primary btn-lg btn-block",
+        disabled: true,
+        text: "Processing...",
+        status: ethTxState.status,
+      });
+    }
+  }
 
   const formSubmissionHandler = async (event) => {
     event.preventDefault();
+
+    setButtonState({
+      class: "btn btn-primary btn-lg btn-block",
+      disabled: true,
+      text: "Processing...",
+      status: ethTxState.status,
+    });
 
     const enteredTitle = titleInputRef.current.value;
     const enteredDescription = descriptionInputRef.current.value;
@@ -19,34 +81,35 @@ function NFTNew() {
 
     let error = false;
 
-    if (enteredTitle.trim() === '') {
-        setEnteredTitleIsValid(false);
-        error = true;
+    if (enteredTitle.trim() === "") {
+      setEnteredTitleIsValid(false);
+      error = true;
     } else {
-        setEnteredTitleIsValid(true);
+      setEnteredTitleIsValid(true);
     }
-    if (enteredDescription.trim() === '') {
-        setEnteredDescriptionIsValid(false);
-        error = true;
+    if (enteredDescription.trim() === "") {
+      setEnteredDescriptionIsValid(false);
+      error = true;
     } else {
-        setEnteredDescriptionIsValid(true);
+      setEnteredDescriptionIsValid(true);
     }
     if (enteredFile === undefined) {
-        setEnteredFileIsValid(false);
-        error = true;
+      setEnteredFileIsValid(false);
+      error = true;
     } else {
-        setEnteredFileIsValid(true);
+      setEnteredFileIsValid(true);
     }
 
     if (error) {
-        return;
+      return;
     }
 
     const ipfsPath = await uploadFileToIPFS(enteredFile);
-    
-    titleInputRef.current.value = '';
-    descriptionInputRef.current.value = '';
-    fileInputRef.current.value = '';
+    sendCreateBlueprint(enteredTitle, enteredDescription, ipfsPath);
+
+    titleInputRef.current.value = "";
+    descriptionInputRef.current.value = "";
+    fileInputRef.current.value = "";
   };
 
   return (
@@ -60,7 +123,9 @@ function NFTNew() {
             name="title"
             id="title"
             placeholder="Your NFT's title"
-            className={enteredTitleIsValid ? "form-control" : "form-control is-invalid"}
+            className={
+              enteredTitleIsValid ? "form-control" : "form-control is-invalid"
+            }
           />
           <div className="invalid-feedback">itle must not be empty</div>
         </div>
@@ -73,7 +138,11 @@ function NFTNew() {
             name="description"
             id="description"
             placeholder="Some description"
-            className={enteredDescriptionIsValid ? "form-control" : "form-control is-invalid"}
+            className={
+              enteredDescriptionIsValid
+                ? "form-control"
+                : "form-control is-invalid"
+            }
           />
           <div className="invalid-feedback">Description must not be empty</div>
         </div>
@@ -85,15 +154,23 @@ function NFTNew() {
             type="file"
             name="image-file"
             id="image-file"
-            className={enteredFileIsValid ? "form-control-file" : "form-control-file is-invalid"}
+            className={
+              enteredFileIsValid
+                ? "form-control-file"
+                : "form-control-file is-invalid"
+            }
             accept="image/*"
           />
           <div className="invalid-feedback">Image is missing!</div>
         </div>
 
         <div id="actions" className="mt-4">
-          <button name="submit" className="btn btn-primary btn-lg btn-block">
-            Submit NFT blueprint
+          <button
+            name="submit"
+            className={buttonState.class}
+            disabled={buttonState.disabled}
+          >
+            {buttonState.text}
           </button>
         </div>
       </form>

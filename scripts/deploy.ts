@@ -50,13 +50,18 @@ async function main() {
     await loadTestBlueprints(utils, tokenPack);
   }
 
+  const tokenAddress = await tokenPack.getTokenContractAddress();
   console.log("Utils contract address:", utils.address);
   console.log("Multicall contract address:", multicallAddress);
   console.log("TokenPack contract Address:", tokenPack.address);
-  console.log(
-    "Token contract address:",
-    await tokenPack.getTokenContractAddress()
-  );
+  console.log("Token contract address:", tokenAddress);
+
+  console.log("Saving frontend files...");
+  saveFrontEndFiles([
+    { name: "TokenPack", address: tokenPack.address },
+    { name: "Token", address: tokenAddress },
+  ]);
+  console.log("Front end files saved");
 }
 
 async function mockVrfCoordinator(linkAddress: string | undefined) {
@@ -100,6 +105,32 @@ async function loadTestBlueprints(utils: Contract, tokenPack: Contract) {
     blueprints.push({ author: signers[0].address, blueprint: i });
     console.log("Created test blueprint", i, signers[0].address);
   }
+}
+
+function saveFrontEndFiles(contractsId: { name: string; address: string }[]) {
+  const fs = require("fs");
+  const javascriptDir = __dirname + "/../frontend/src/utils";
+
+  if (!fs.existsSync(javascriptDir)) {
+    fs.mkdirSync(javascriptDir);
+  }
+
+  let contracts: any = {};
+  for (let i = 0; i < contractsId.length; i++) {
+    const artifact = artifacts.readArtifactSync(contractsId[i].name);
+
+    contracts[contractsId[i].name] = {
+        address: contractsId[i].address,
+        abi: artifact.abi,
+      };
+  }
+
+  fs.writeFileSync(
+    javascriptDir + "/contracts-utils.js",
+    "export const contracts = " +
+      JSON.stringify(contracts, null, 2) +
+      ";"
+  );
 }
 
 main()
