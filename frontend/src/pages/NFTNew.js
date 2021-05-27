@@ -29,10 +29,7 @@ function NFTNew() {
 
   const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
     tokenContract,
-    "createBlueprint",
-    {
-      transactionName: "New blueprint",
-    }
+    "createBlueprint"
   );
 
   console.log(ethTxState);
@@ -107,9 +104,9 @@ function NFTNew() {
     const imageIpfsPath = await uploadFileToIPFS(enteredFile);
 
     const metadata = {
-      title: enteredTitle,
+      name: enteredTitle,
       description: enteredDescription,
-      imageIPFS: imageIpfsPath
+      image: "ipfs://" + imageIpfsPath
     }
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);

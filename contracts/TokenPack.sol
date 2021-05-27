@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@chainlink/contracts/src/v0.8/dev/VRFConsumerBase.sol";
 
-import "./ICommonStructs.sol";
 import "./Token.sol";
 import "./Utils.sol";
 
@@ -13,7 +12,7 @@ import "./Utils.sol";
  * @title TokenPack
  * @notice The pack responsible for selling random Tokens from collections
  */
-contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
+contract TokenPack is Context, VRFConsumerBase {
     using Strings for uint256;
 
     bytes32 internal keyHash;
@@ -23,7 +22,7 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
 
     uint8 public constant MINIMUM_PACK_PRICE = 1;
     uint8 public constant MINIMUM_PACK_CAPACITY = 1;
-    uint8 public constant MINIMUM_COLLECTION_BLUEPRINTS = 20;
+    uint8 public constant MINIMUM_COLLECTION_BLUEPRINTS = 10;
 
     Token private tokenContract;
 
@@ -55,8 +54,7 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
         string description;
         uint256 price;
         uint8 capacity;
-        uint256 collectionSize;
-        mapping (uint256 => BlueprintKey) blueprints;
+        uint256[] blueprints;
     }
 
     /**
@@ -103,7 +101,7 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
      * @notice Gets the address of the used ERC721 for minting
      * @return address of the Token contract
      */
-    function getTokenContractAddress() external view returns(address) {
+    function tokenContractAddress() external view returns(address) {
         return address(tokenContract);
     }
 
@@ -120,7 +118,7 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
             string calldata description,
             uint256 price, 
             uint8 capacity, 
-            BlueprintKey[] calldata blueprints) external returns (uint16) {
+            uint256[] calldata blueprints) external returns (uint16) {
         
         require (Utils.isNotEmptyString(name), "ERROR_EMPTY_COLLECTION_NAME");
         require (Utils.isNotEmptyString(description), "ERROR_EMPTY_COLLECTION_DESCRIPTION");
@@ -134,11 +132,11 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
         collection.description = description;
         collection.price = price;
         collection.capacity = capacity;
-        collection.collectionSize = blueprints.length;
+        collection.blueprints = blueprints;
 
-        for (uint256 i; i < blueprints.length; i++) {
-            collection.blueprints[i] = blueprints[i];
-        }
+        // for (uint256 i; i < blueprints.length; i++) {
+        //     collection.blueprints.push(blueprints[i]);
+        // }
 
         _mapPackerToCollectionCounter[_msgSender()] = currentIndex + 1;
 
@@ -184,12 +182,11 @@ contract TokenPack is Context, ICommonStructs, VRFConsumerBase {
         for (uint8 i = 0; i < collection.capacity; i++) {
             uint256 derivedRandom = uint(keccak256(abi.encodePacked(randomNumber, i)));
 
-            uint256 index = derivedRandom % collection.collectionSize;
+            uint256 index = derivedRandom % collection.blueprints.length;
 
             tokenContract.mintFromBlueprint(
                 buyer, 
-                collection.blueprints[index].author, 
-                collection.blueprints[index].blueprint
+                collection.blueprints[index]
             );
         }
 
