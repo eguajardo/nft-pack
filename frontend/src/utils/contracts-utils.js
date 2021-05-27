@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0x2b639Cc84e1Ad3aA92D4Ee7d2755A6ABEf300D72",
+    "address": "0x52173b6ac069619c206b9A0e75609fC92860AB2A",
     "abi": [
       {
         "inputs": [
@@ -193,21 +193,9 @@ export const contracts = {
             "type": "uint8"
           },
           {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "author",
-                "type": "address"
-              },
-              {
-                "internalType": "uint16",
-                "name": "blueprint",
-                "type": "uint16"
-              }
-            ],
-            "internalType": "struct ICommonStructs.BlueprintKey[]",
+            "internalType": "uint256[]",
             "name": "blueprints",
-            "type": "tuple[]"
+            "type": "uint256[]"
           }
         ],
         "name": "createTokenCollection",
@@ -219,19 +207,6 @@ export const contracts = {
           }
         ],
         "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "getTokenContractAddress",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
         "type": "function"
       },
       {
@@ -251,11 +226,24 @@ export const contracts = {
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "tokenContractAddress",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
       }
     ]
   },
   "Token": {
-    "address": "0x3d6E2F365fA27FdafBB20b9356C0C0922224E8d2",
+    "address": "0x8E09B30770010f3Aab2109B5523E74c4D1d64934",
     "abi": [
       {
         "inputs": [
@@ -333,31 +321,6 @@ export const contracts = {
         "inputs": [
           {
             "indexed": true,
-            "internalType": "address",
-            "name": "author",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "uint16",
-            "name": "blueprintIndex",
-            "type": "uint16"
-          },
-          {
-            "indexed": false,
-            "internalType": "string",
-            "name": "ipfsPath",
-            "type": "string"
-          }
-        ],
-        "name": "BlueprintCreated",
-        "type": "event"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": false,
             "internalType": "uint256",
             "name": "tokenId",
             "type": "uint256"
@@ -370,15 +333,9 @@ export const contracts = {
           },
           {
             "indexed": true,
-            "internalType": "address",
-            "name": "author",
-            "type": "address"
-          },
-          {
-            "indexed": true,
-            "internalType": "uint16",
-            "name": "blueprintIndex",
-            "type": "uint16"
+            "internalType": "uint256",
+            "name": "blueprintId",
+            "type": "uint256"
           }
         ],
         "name": "Minted",
@@ -548,32 +505,16 @@ export const contracts = {
         "type": "function"
       },
       {
-        "inputs": [
-          {
-            "internalType": "string",
-            "name": "title",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "description",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "ipfsPath",
-            "type": "string"
-          }
-        ],
-        "name": "createBlueprint",
+        "inputs": [],
+        "name": "blueprintContractAddress",
         "outputs": [
           {
-            "internalType": "uint16",
+            "internalType": "address",
             "name": "",
-            "type": "uint16"
+            "type": "address"
           }
         ],
-        "stateMutability": "nonpayable",
+        "stateMutability": "view",
         "type": "function"
       },
       {
@@ -731,14 +672,9 @@ export const contracts = {
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "blueprintAuthor",
-            "type": "address"
-          },
-          {
-            "internalType": "uint16",
-            "name": "blueprintIndex",
-            "type": "uint16"
+            "internalType": "uint256",
+            "name": "blueprintId",
+            "type": "uint256"
           }
         ],
         "name": "mintFromBlueprint",
@@ -919,6 +855,49 @@ export const contracts = {
         "inputs": [
           {
             "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "tokenByIndex",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "tokenOfOwnerByIndex",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
             "name": "tokenId",
             "type": "uint256"
           }
@@ -929,6 +908,19 @@ export const contracts = {
             "internalType": "string",
             "name": "",
             "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",
@@ -955,6 +947,130 @@ export const contracts = {
         "name": "transferFrom",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ]
+  },
+  "Blueprint": {
+    "address": "0xE1Bdf8Fc03B8C9722a0C07d9Eb6Cb9d7475A93Df",
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "author",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "blueprintId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "authorBlueprintIndex",
+            "type": "uint256"
+          }
+        ],
+        "name": "BlueprintCreated",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "author",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "blueprintOfAuthorByIndex",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "blueprintId",
+            "type": "uint256"
+          }
+        ],
+        "name": "blueprintURI",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "ipfsPath",
+            "type": "string"
+          }
+        ],
+        "name": "createBlueprint",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "blueprintId",
+            "type": "uint256"
+          }
+        ],
+        "name": "exist",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalBlueprints",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
         "type": "function"
       }
     ]

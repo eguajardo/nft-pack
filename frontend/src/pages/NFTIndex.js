@@ -6,21 +6,21 @@ import { utils } from "ethers";
 import { useContractCall } from "@usedapp/core";
 
 function NFTIndex() {
-  const tokenContract = new Contract(
-    contracts.Token.address,
-    new utils.Interface(contracts.Token.abi)
-  );
+  // const tokenContract = new Contract(
+  //   contracts.Token.address,
+  //   new utils.Interface(contracts.Token.abi)
+  // );
 
-  const [test] =
-    useContractCall({
-      abi: new utils.Interface(contracts.Token.abi),
-      address: contracts.Token.address,
-      method: "totalSupply",
-      args: [],
-    }) ?? [];
+  // const [test] =
+  //   useContractCall({
+  //     abi: new utils.Interface(contracts.Token.abi),
+  //     address: contracts.Token.address,
+  //     method: "totalSupply",
+  //     args: [],
+  //   }) ?? [];
 
   const testFunction = async () => {
-    console.log("test:", test);
+    //console.log("test:", test);
   };
 
   return (

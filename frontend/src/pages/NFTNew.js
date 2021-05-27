@@ -22,13 +22,13 @@ function NFTNew() {
     useState(true);
   const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
 
-  const tokenContract = new Contract(
-    contracts.Token.address,
-    new utils.Interface(contracts.Token.abi)
+  const blueprintContract = new Contract(
+    contracts.Blueprint.address,
+    new utils.Interface(contracts.Blueprint.abi)
   );
 
   const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
-    tokenContract,
+    blueprintContract,
     "createBlueprint"
   );
 
@@ -106,11 +106,11 @@ function NFTNew() {
     const metadata = {
       name: enteredTitle,
       description: enteredDescription,
-      image: "ipfs://" + imageIpfsPath
-    }
+      image: "ipfs://" + imageIpfsPath,
+    };
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
-    sendCreateBlueprint(enteredTitle, enteredDescription, metadataIpfsPath);
+    sendCreateBlueprint(metadataIpfsPath);
 
     titleInputRef.current.value = "";
     descriptionInputRef.current.value = "";
