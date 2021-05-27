@@ -7,7 +7,7 @@ import { ChainId, DAppProvider } from "@usedapp/core";
 import { BrowserRouter } from "react-router-dom";
 
 const config = {
-  //readOnlyChainId: 31337,
+  readOnlyChainId: 31337,
   readOnlyUrls: {
     [ChainId.Hardhat]: "http://127.0.0.1:8545",
   },

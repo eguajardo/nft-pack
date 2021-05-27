@@ -109,7 +109,7 @@ async function mockMulticall() {
 async function loadTestBlueprints(blueprint: Contract) {
   const signers = await ethers.getSigners();
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 10; i++) {
     await blueprint.createBlueprint(
       "QmSsdhTt5QDqcQBNazUFajxET4FqGevvuCxoXoFhezUSZW"
     );

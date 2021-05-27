@@ -1,27 +1,46 @@
 import { Link } from "react-router-dom";
 import NftCard from "../components/UI/NftCard";
-import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../utils/contracts-utils";
-import { utils } from "ethers";
-import { useContractCall } from "@usedapp/core";
+import { ethers, utils } from "ethers";
+import { useEthers, useContractCall } from "@usedapp/core";
+import { useState } from "react";
 
 function NFTIndex() {
-  // const tokenContract = new Contract(
-  //   contracts.Token.address,
-  //   new utils.Interface(contracts.Token.abi)
-  // );
+  const { library } = useEthers();
+  const [content, setContent] = useState([]);
 
-  // const [test] =
-  //   useContractCall({
-  //     abi: new utils.Interface(contracts.Token.abi),
-  //     address: contracts.Token.address,
-  //     method: "totalSupply",
-  //     args: [],
-  //   }) ?? [];
+  let [totalBlueprints] =
+    useContractCall({
+      abi: new utils.Interface(contracts.Blueprint.abi),
+      address: contracts.Blueprint.address,
+      method: "totalBlueprints",
+      args: [],
+    }) ?? [];
 
-  const testFunction = async () => {
-    //console.log("test:", test);
-  };
+  if (totalBlueprints) {
+    console.log("totalBlueprints:", totalBlueprints.toNumber());
+
+    const blueprint = new ethers.Contract(
+      contracts.Blueprint.address,
+      contracts.Blueprint.abi,
+      library
+    );
+    totalBlueprints = 1;
+    const loadContent = async () => {
+      let cards = [];
+      for (let i = 0; i < totalBlueprints; i++) {
+        const blueprintURI = await blueprint.blueprintURI(i);
+
+        cards.push(<NftCard key={i} uri={blueprintURI} />);
+      }
+
+      setContent(cards);
+    };
+
+    if (content.length !== totalBlueprints) {
+      loadContent();
+    }
+  }
 
   return (
     <div>
@@ -30,15 +49,7 @@ function NFTIndex() {
           Create NFT
         </Link>
       </div>
-      <div className="container content-container">
-        <NftCard></NftCard>
-      </div>
-
-      <div id="actions" className="mt-4">
-        <button onClick={testFunction} name="submit">
-          test
-        </button>
-      </div>
+      <div className="container content-container">{content}</div>
     </div>
   );
 }

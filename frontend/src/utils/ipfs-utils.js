@@ -1,58 +1,76 @@
-import IPFS from 'ipfs-api';
+import IPFS from "ipfs-api";
 
-const ipfs = new IPFS({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
+const ipfs = new IPFS({
+  host: "ipfs.infura.io",
+  port: 5001,
+  protocol: "https",
+});
 
 /**
  * Reads the file as Buffer
- * 
+ *
  * @param {File} file The file object to read as Buffer
  * @returns a Promise<Buffer> with the file read
  */
 const readFileAsBuffer = (file) => {
-    const reader = new window.FileReader();
+  const reader = new window.FileReader();
 
-    return new Promise((resolve, reject) => {
-        reader.onerror = () => {
-            reader.abort();
-            reject(new DOMException("Error reading file"));
-        }
+  return new Promise((resolve, reject) => {
+    reader.onerror = () => {
+      reader.abort();
+      reject(new DOMException("Error reading file"));
+    };
 
-        reader.onload = () => {
-            resolve(Buffer(reader.result));
-        }
+    reader.onload = () => {
+      resolve(Buffer(reader.result));
+    };
 
-        reader.readAsArrayBuffer(file);
-    });
-}
+    reader.readAsArrayBuffer(file);
+  });
+};
 
 /**
  * Reads a file and uploads it to IPFS
- * 
+ *
  * @param {File} file The file object to upload to IPFS
  * @returns the IPFS path where the file was uploaded
  */
 export const uploadFileToIPFS = async (file) => {
-    const fileBuffer = await readFileAsBuffer(file);
+  const fileBuffer = await readFileAsBuffer(file);
 
-    const response = await ipfs.files.add(fileBuffer);
+  const response = await ipfs.files.add(fileBuffer);
 
-    console.log("IPFS file uploaded:", response);
-    return response[0].path;
-}
+  console.log("IPFS file uploaded:", response);
+  return response[0].path;
+};
 
 /**
  * Uploads an object to IPFS
- * 
+ *
  * @param {object} json The object to upload
  * @returns the IPFS path where the object was uploaded
  */
 export const uploadJsonToIPFS = async (json) => {
-    const jsonString = JSON.stringify(json, null, 2);
+  const jsonString = JSON.stringify(json, null, 2);
 
-    const response = await ipfs.add(Buffer.from(jsonString));
+  const response = await ipfs.add(Buffer.from(jsonString));
 
-    console.log("IPFS JSON uploaded:", response);
-    return response[0].path;
-}
+  console.log("IPFS JSON uploaded:", response);
+  return response[0].path;
+};
+
+/**
+ * Loads a JSON from IPFS
+ *
+ * @param {string} ipfsPath The IPFS path
+ * @returns a JSON object loaded from the specified IPFS path
+ */
+export const loadJsonFromIPFS = async (ipfsPath) => {
+  const utf8decoder = new TextDecoder();
+  let ipfsMessage = utf8decoder.decode(await ipfs.cat(ipfsPath));
+
+  console.log("IPFS message retrieved:", ipfsMessage);
+  return JSON.parse(ipfsMessage);
+};
 
 export default ipfs;
