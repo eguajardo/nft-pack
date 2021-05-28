@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 
 function NftCard(props) {
   const [metadata, setMetadata] = useState({});
+  const [selected, setSelected] = useState(false);
 
   const loadMetadata = useCallback(async () => {
     const json = await loadJsonFromIPFS(props.uri);
@@ -10,12 +11,25 @@ function NftCard(props) {
     setMetadata(json);
   }, [props.uri]);
 
+  const toggleSelected = () => {
+    if (selected) {
+      setSelected(false);
+      props.setSelected(props.blueprintId, false);
+    } else {
+      setSelected(true);
+      props.setSelected(props.blueprintId, true);
+    }
+  }
+
   useEffect(() => {
     loadMetadata();
   }, [loadMetadata]);
 
   return (
-    <div className="card">
+    <div
+      className={selected ? "card selected" : "card"}
+      onClick={toggleSelected}
+    >
       {metadata.image && (
         <img
           className="card-img-top"

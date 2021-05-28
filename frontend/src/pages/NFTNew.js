@@ -13,7 +13,7 @@ function NFTNew() {
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
     disabled: false,
-    text: "Submit NFT",
+    text: "Submit NFT blueprint",
     status: "None",
   });
 

@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 function NFTIndex() {
   const { library } = useEthers();
   const [content, setContent] = useState([]);
+  const [selectedBlueprints, setSelectedBlueprints] = useState([]);
 
   let [totalBlueprints] =
     useContractCall({
@@ -16,6 +17,21 @@ function NFTIndex() {
       method: "totalBlueprints",
       args: [],
     }) ?? [];
+
+  console.log("render");
+
+  const setSelected = useCallback((blueprintId, selected) => {
+    let newArray = [];
+    if (selected) {
+      setSelectedBlueprints((arr) => [...arr, blueprintId]);
+    } else {
+      newArray = selectedBlueprints.filter((value, index, arr) => {
+        return value !== blueprintId;
+      });
+
+      setSelectedBlueprints((arr) => [...newArray]);
+    }
+  }, [selectedBlueprints]);
 
   const loadContent = useCallback(async () => {
     if (totalBlueprints) {
@@ -28,15 +44,22 @@ function NFTIndex() {
       );
 
       let cardsDeck = [];
-      for (let i = 0; i < totalBlueprints; i++) {
+      for (let i = totalBlueprints - 1; i >= 0; i--) {
         const blueprintURI = await blueprint.blueprintURI(i);
 
-        cardsDeck.push(<NftCard key={i} uri={blueprintURI} />);
+        cardsDeck.push(
+          <NftCard
+            key={i}
+            blueprintId={i}
+            uri={blueprintURI}
+            setSelected={setSelected}
+          />
+        );
       }
 
       setContent(cardsDeck);
     }
-  }, [totalBlueprints, library]);
+  }, [totalBlueprints, library, setSelected]);
 
   useEffect(() => {
     loadContent();
@@ -45,8 +68,14 @@ function NFTIndex() {
   return (
     <div>
       <div id="actions" className="container mb-3 d-flex flex-row-reverse">
-        <Link className="btn btn-outline-info" to="/nfts/new">
-          Create NFT
+        <button
+          className={selectedBlueprints.length === 0 ? "btn btn-secondary ml-2" : "btn btn-info ml-2"}
+          disabled={selectedBlueprints.length === 0}
+        >
+          Create collection from selection
+        </button>
+        <Link className="btn btn-info" to="/nfts/new">
+          Create new NFT blueprint
         </Link>
       </div>
       <div className="container content-container">
