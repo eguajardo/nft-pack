@@ -3,7 +3,7 @@ import NftCard from "../components/UI/NftCard";
 import { contracts } from "../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function NFTIndex() {
   const { library } = useEthers();
@@ -17,30 +17,30 @@ function NFTIndex() {
       args: [],
     }) ?? [];
 
-  if (totalBlueprints) {
-    console.log("totalBlueprints:", totalBlueprints.toNumber());
+  const loadContent = useCallback(async () => {
+    if (totalBlueprints) {
+      console.log("totalBlueprints:", totalBlueprints.toNumber());
 
-    const blueprint = new ethers.Contract(
-      contracts.Blueprint.address,
-      contracts.Blueprint.abi,
-      library
-    );
-    totalBlueprints = 1;
-    const loadContent = async () => {
-      let cards = [];
+      const blueprint = new ethers.Contract(
+        contracts.Blueprint.address,
+        contracts.Blueprint.abi,
+        library
+      );
+
+      let cardsDeck = [];
       for (let i = 0; i < totalBlueprints; i++) {
         const blueprintURI = await blueprint.blueprintURI(i);
 
-        cards.push(<NftCard key={i} uri={blueprintURI} />);
+        cardsDeck.push(<NftCard key={i} uri={blueprintURI} />);
       }
 
-      setContent(cards);
-    };
-
-    if (content.length !== totalBlueprints) {
-      loadContent();
+      setContent(cardsDeck);
     }
-  }
+  }, [totalBlueprints, library]);
+
+  useEffect(() => {
+    loadContent();
+  }, [loadContent]);
 
   return (
     <div>
@@ -49,7 +49,9 @@ function NFTIndex() {
           Create NFT
         </Link>
       </div>
-      <div className="container content-container">{content}</div>
+      <div className="container content-container">
+        <div className="card-deck d-flex justify-content-center">{content}</div>
+      </div>
     </div>
   );
 }

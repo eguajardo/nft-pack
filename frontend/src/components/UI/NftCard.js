@@ -1,21 +1,42 @@
-import { loadJsonFromIPFS } from "../../utils/ipfs-utils";
-import { useState } from "react";
+import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
+import { useState, useCallback, useEffect } from "react";
 
 function NftCard(props) {
   const [metadata, setMetadata] = useState({});
 
-  loadJsonFromIPFS(props.uri.replace("ipfs://", "")).then((json) => {
+  const loadMetadata = useCallback(async () => {
+    const json = await loadJsonFromIPFS(props.uri);
+
     setMetadata(json);
-  });
+  }, [props.uri]);
+
+  useEffect(() => {
+    loadMetadata();
+  }, [loadMetadata]);
 
   return (
-    <div>
-      <div className="card">
-        <div className="card-body">
-          <div>{metadata.title && metadata.title}</div>
-          <br/>
-          <div>{metadata.description && metadata.description}</div>
-        </div>
+    <div className="card">
+      {metadata.image && (
+        <img
+          className="card-img-top"
+          alt={metadata.name}
+          src={ipfsPathToURL(metadata.image)}
+        />
+      )}
+      <div className="card-body">
+        {metadata.name && (
+          <div>
+            <div className="mt-2 font-weight-bold">{"Title:"}</div>
+            <div>{metadata.name}</div>
+          </div>
+        )}
+
+        {metadata.description && (
+          <div>
+            <div className="font-weight-bold">{"Description:"}</div>
+            <div>{metadata.description}</div>
+          </div>
+        )}
       </div>
     </div>
   );

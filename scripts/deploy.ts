@@ -111,7 +111,7 @@ async function loadTestBlueprints(blueprint: Contract) {
 
   for (let i = 0; i < 10; i++) {
     await blueprint.createBlueprint(
-      "QmSsdhTt5QDqcQBNazUFajxET4FqGevvuCxoXoFhezUSZW"
+      "QmX2V4MpeSmkBQ6UormESbxgi1kXyCqTeLRdusx2raWLvH"
     );
     console.log("Created test blueprint", i, signers[0].address);
   }
