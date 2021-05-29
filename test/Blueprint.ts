@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Contract } from "@ethersproject/contracts";
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 
 describe("Blueprint contract", () => {
   const IPFS_PATH: string = "someFakeIPFSpath";

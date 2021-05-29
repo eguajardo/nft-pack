@@ -44,14 +44,20 @@ export const contracts = {
           {
             "indexed": true,
             "internalType": "address",
-            "name": "packer",
+            "name": "distributor",
             "type": "address"
           },
           {
             "indexed": true,
-            "internalType": "uint16",
-            "name": "collectionIndex",
-            "type": "uint16"
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "distributorCollectionIndex",
+            "type": "uint256"
           }
         ],
         "name": "CollectionCreated",
@@ -86,16 +92,10 @@ export const contracts = {
             "type": "address"
           },
           {
-            "indexed": true,
-            "internalType": "address",
-            "name": "packer",
-            "type": "address"
-          },
-          {
             "indexed": false,
-            "internalType": "uint16",
-            "name": "collectionIndex",
-            "type": "uint16"
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
           },
           {
             "indexed": true,
@@ -149,14 +149,9 @@ export const contracts = {
       {
         "inputs": [
           {
-            "internalType": "address",
-            "name": "packer",
-            "type": "address"
-          },
-          {
-            "internalType": "uint16",
-            "name": "collectionIndex",
-            "type": "uint16"
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
           }
         ],
         "name": "buyPack",
@@ -173,13 +168,27 @@ export const contracts = {
       {
         "inputs": [
           {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
-          },
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
+          }
+        ],
+        "name": "collectionURI",
+        "outputs": [
           {
             "internalType": "string",
-            "name": "description",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "ipfsPath",
             "type": "string"
           },
           {
@@ -201,12 +210,31 @@ export const contracts = {
         "name": "createTokenCollection",
         "outputs": [
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
             "name": "",
-            "type": "uint16"
+            "type": "uint256"
           }
         ],
         "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
+          }
+        ],
+        "name": "exist",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
         "type": "function"
       },
       {
@@ -235,6 +263,19 @@ export const contracts = {
             "internalType": "address",
             "name": "",
             "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalBlueprints",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",

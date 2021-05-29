@@ -107,7 +107,7 @@ function NFTIndex() {
         <div className="col-4">
           <div className="mb-5"></div>
           <div className="content-container">
-            <CollectionForm closeCollectionForm={closeCollectionForm} />
+            <CollectionForm selectedBlueprints={selectedBlueprints} closeCollectionForm={closeCollectionForm} />
           </div>
         </div>
       )}

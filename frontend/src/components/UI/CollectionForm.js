@@ -21,7 +21,7 @@ function CollectionForm(props) {
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
     disabled: false,
-    text: "Submit collection"
+    text: "Submit collection",
   });
 
   const [enteredTitleIsValid, setEnteredNameIsValid] = useState(true);
@@ -48,22 +48,28 @@ function CollectionForm(props) {
       setButtonState({
         class: "btn btn-success btn-lg btn-block",
         disabled: true,
-        text: "Success!"
+        text: "Success!",
       });
+
+      nameInputRef.current.value = "";
+      descriptionInputRef.current.value = "";
+      priceInputRef.current.value = 0.0;
+      capacityInputRef.current.value = 0;
+      fileInputRef.current.value = "";
     } else if (
       ethTxState.status === "Exception" ||
       ethTxState.status === "Fail"
     ) {
       setButtonState({
-        class: "btn btn-danger btn-lg btn-block",
-        disabled: true,
-        text: "Failure"
+        class: "btn btn-primary btn-lg btn-block",
+        disabled: false,
+        text: "Submit collection",
       });
     } else if (ethTxState.status === "Mining") {
       setButtonState({
         class: "btn btn-primary btn-lg btn-block",
         disabled: true,
-        text: "Processing..."
+        text: "Processing...",
       });
     }
   }, [ethTxState]);
@@ -117,7 +123,7 @@ function CollectionForm(props) {
     setButtonState({
       class: "btn btn-primary btn-lg btn-block",
       disabled: true,
-      text: "Processing..."
+      text: "Processing...",
     });
 
     const imageIpfsPath = await uploadFileToIPFS(enteredFile);
@@ -129,13 +135,12 @@ function CollectionForm(props) {
     };
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
-    //sendCreateCollection(metadataIpfsPath);
-
-    nameInputRef.current.value = "";
-    descriptionInputRef.current.value = "";
-    priceInputRef.current.value = 0.0;
-    capacityInputRef.current.value = 0;
-    fileInputRef.current.value = "";
+    sendCreateCollection(
+      metadataIpfsPath,
+      utils.parseEther(enteredPrice),
+      enteredCapacity,
+      props.selectedBlueprints
+    );
   };
 
   return (
@@ -186,9 +191,7 @@ function CollectionForm(props) {
             step="0.01"
             id="price"
             className={
-              enteredPriceIsValid
-                ? "form-control"
-                : "form-control is-invalid"
+              enteredPriceIsValid ? "form-control" : "form-control is-invalid"
             }
           />
           <div className="invalid-feedback">Price must be grater than 0</div>
@@ -208,7 +211,9 @@ function CollectionForm(props) {
                 : "form-control is-invalid"
             }
           />
-          <div className="invalid-feedback">Cards per booster must be grater than 0</div>
+          <div className="invalid-feedback">
+            Cards per booster must be grater than 0
+          </div>
         </div>
 
         <div className="form-group">
@@ -229,6 +234,13 @@ function CollectionForm(props) {
         </div>
 
         <div id="actions" className="mt-4">
+          {(ethTxState.status === "Exception" ||
+            ethTxState.status === "Fail") && (
+            <div className="alert alert-danger">
+              <strong>Error executing transaction</strong>
+              <p>{ethTxState.errorMessage}</p>
+            </div>
+          )}
           <button
             name="submit"
             className={buttonState.class}

@@ -1,12 +1,9 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract } from "@ethersproject/contracts";
-import {
-  TransactionResponse,
-  TransactionReceipt,
-} from "@ethersproject/abstract-provider";
+import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumber, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 
 describe("TokenPack contract", () => {
   const LINK_ADDRESS: string = "0x326c977e6efc84e512bb9c30f76e30c160ed06fb";
@@ -14,21 +11,20 @@ describe("TokenPack contract", () => {
     "0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4";
   const ORACLE_FEE: Number = 0;
 
-  const NAME: string = "Collection Name";
-  const DESCRIPTION: string = "Collection Description";
+  const IPFS_PATH: string = "someFakeIPFSpath";
   const PRICE: Number = 1;
   const CAPACITY: Number = 5;
 
   let tokenPack: Contract;
   let vrfCoordinator: Contract;
   let signers: SignerWithAddress[];
-  let packerSigner: SignerWithAddress;
+  let distributorSigner: SignerWithAddress;
   let authorSigner: SignerWithAddress;
   let blueprintGenerator: Function;
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    packerSigner = signers[0];
+    distributorSigner = signers[0];
     authorSigner = signers[1];
 
     const utilsFactory: ContractFactory = await ethers.getContractFactory(
@@ -46,7 +42,7 @@ describe("TokenPack contract", () => {
     const tokenPackFactory: ContractFactory = await ethers.getContractFactory(
       "TokenPack",
       {
-        signer: packerSigner,
+        signer: distributorSigner,
         libraries: {
           Utils: utils.address,
         },
@@ -116,8 +112,7 @@ describe("TokenPack contract", () => {
 
   it("Creates collection successfully", async () => {
     const tx: TransactionResponse = await tokenPack.createTokenCollection(
-      NAME,
-      DESCRIPTION,
+      IPFS_PATH,
       PRICE,
       CAPACITY,
       await blueprintGenerator(10)
@@ -125,26 +120,24 @@ describe("TokenPack contract", () => {
 
     await expect(tx)
       .to.emit(tokenPack, "CollectionCreated")
-      .withArgs(packerSigner.address, 0);
+      .withArgs(distributorSigner.address, 0, 0);
   });
 
-  it("Fails collection creation with empty name", async () => {
+  it("Fails collection creation with empty ipfsPath", async () => {
     await expect(
       tokenPack.createTokenCollection(
         "",
-        DESCRIPTION,
         PRICE,
         CAPACITY,
         await blueprintGenerator(10)
       )
-    ).to.be.revertedWith("ERROR_EMPTY_COLLECTION_NAME");
+    ).to.be.revertedWith("ERROR_EMPTY_IPFS_PATH");
   });
 
   it("Fails collection creation with under limit price", async () => {
     await expect(
       tokenPack.createTokenCollection(
-        NAME,
-        DESCRIPTION,
+        IPFS_PATH,
         0,
         CAPACITY,
         await blueprintGenerator(10)
@@ -155,8 +148,7 @@ describe("TokenPack contract", () => {
   it("Fails collection creation with under limit capacity", async () => {
     await expect(
       tokenPack.createTokenCollection(
-        NAME,
-        DESCRIPTION,
+        IPFS_PATH,
         PRICE,
         0,
         await blueprintGenerator(10)
@@ -167,8 +159,7 @@ describe("TokenPack contract", () => {
   it("Fails collection creation with under limit collection", async () => {
     await expect(
       tokenPack.createTokenCollection(
-        NAME,
-        DESCRIPTION,
+        IPFS_PATH,
         PRICE,
         CAPACITY,
         await blueprintGenerator(9)
@@ -178,27 +169,27 @@ describe("TokenPack contract", () => {
 
   it("Buys pack successfully", async () => {
     await tokenPack.createTokenCollection(
-      NAME,
-      DESCRIPTION,
+      IPFS_PATH,
+      PRICE,
+      CAPACITY,
+      await blueprintGenerator(10)
+    );
+
+    await tokenPack.createTokenCollection(
+      IPFS_PATH,
       PRICE,
       CAPACITY,
       await blueprintGenerator(10)
     );
 
     // Non state changing call just to preview the requestId
-    const requestId = await tokenPack.callStatic.buyPack(
-      packerSigner.address,
-      0
-    );
+    const requestId = await tokenPack.callStatic.buyPack(1);
 
-    const tx: TransactionResponse = await tokenPack.buyPack(
-      packerSigner.address,
-      0
-    );
+    const tx: TransactionResponse = await tokenPack.buyPack(1);
 
     await expect(tx)
       .to.emit(tokenPack, "PurchaseOrdered")
-      .withArgs(packerSigner.address, packerSigner.address, 0, requestId);
+      .withArgs(distributorSigner.address, 1, requestId);
 
     const vrfTx: TransactionResponse =
       await vrfCoordinator.callBackWithRandomness(
@@ -209,11 +200,11 @@ describe("TokenPack contract", () => {
 
     await expect(vrfTx)
       .to.emit(tokenPack, "PackOpened")
-      .withArgs(requestId, packerSigner.address);
+      .withArgs(requestId, distributorSigner.address);
   });
 
   it("Fails buying invalid collection", async () => {
-    await expect(tokenPack.buyPack(packerSigner.address, 0)).to.be.revertedWith(
+    await expect(tokenPack.buyPack(0)).to.be.revertedWith(
       "ERROR_INVALID_COLLECTION"
     );
   });

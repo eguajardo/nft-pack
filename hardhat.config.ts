@@ -1,6 +1,5 @@
 import { HardhatUserConfig } from "hardhat/types";
 
-import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 
 import * as dotenv from "dotenv";

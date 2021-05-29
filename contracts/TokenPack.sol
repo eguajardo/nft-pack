@@ -50,8 +50,7 @@ contract TokenPack is Context, VRFConsumerBase {
      * @notice Struct containing the collection details
      */
     struct TokenCollection {
-        string name;
-        string description;
+        string ipfsPath;
         uint256 price;
         uint8 capacity;
         uint256[] blueprints;
@@ -62,35 +61,38 @@ contract TokenPack is Context, VRFConsumerBase {
      */
     struct PurchaseOrder {
         address buyer;
-        address packer;
-        uint16 collectionIndex;
+        uint256 collectionId;
     }
 
     /**
-     * @dev Mapping of the packer to their current own collections index counter
-     * Limit maximum collections index per author to 65535 by using uint16
+     * @dev Mapping from distributor to list of collections IDs
      */
-    mapping (address => uint16) private _mapPackerToCollectionCounter;
+    mapping (address => uint256[]) private _distributorCollections;
 
     /**
-     * @dev Mapping of the addresses that created the collection and their Collections
+     * @dev Keeps track of total of collections
      */
-    mapping (address => mapping (uint16 => TokenCollection)) private _mapPackerToCollection;
+    uint256 private _collectionsCounter;
 
     /**
-     * @dev Mapping of the requestId for randomness (ie. purchase order id) to the Purchase order
+     * @dev Mapping storing all TokenCollections
      */
-    mapping (bytes32 => PurchaseOrder) private _mapRequestIdToPurchaseOrder;
+    mapping (uint256 => TokenCollection) private _tokenCollections;
 
     /**
-     * @notice Emitted when the sender 'packer' creates the collection with index 'collectionIndex'
+     * @dev Mapping from the requestId for randomness (ie. purchase order id) to the Purchase order
      */
-    event CollectionCreated (address indexed packer, uint16 indexed collectionIndex);
+    mapping (bytes32 => PurchaseOrder) private _purchaseOrders;
 
     /**
-     * @notice Emitted when the 'buyer' buys a pack from 'packer' collection with index 'collectionIndex'
+     * @notice Emitted when the sender 'distributor' creates the collection with index 'collectionIndex'
      */
-    event PurchaseOrdered (address indexed buyer, address indexed packer, uint16 collectionIndex, bytes32 indexed purchaseOrderId);
+    event CollectionCreated (address indexed distributor, uint256 indexed collectionId, uint256 distributorCollectionIndex);
+
+    /**
+     * @notice Emitted when the 'buyer' generates a 'purchaseOrderId' for purchasing a pack from the collection with ID 'collectionId'
+     */
+    event PurchaseOrdered (address indexed buyer, uint256 collectionId, bytes32 indexed purchaseOrderId);
 
     /**
      * @notice Emitted when the pack bought by 'buyer' in 'purchaseOrderId' was opened
@@ -107,65 +109,77 @@ contract TokenPack is Context, VRFConsumerBase {
 
     /**
      * @notice Creates a new token collection
-     * @param name The name of the collection
-     * @param description The description of the collection
+     * @param ipfsPath The path to the collection metadata
      * @param price Cost to buy a pack from this collection
      * @param capacity The amount of cards per pack in this collection
      * @param blueprints An array of blueprint keys that represents this collection
      * @return id of the collection index relative to the collection creator
      */
-    function createTokenCollection(string calldata name, 
-            string calldata description,
+    function createTokenCollection(string calldata ipfsPath,
             uint256 price, 
             uint8 capacity, 
-            uint256[] calldata blueprints) external returns (uint16) {
+            uint256[] calldata blueprints) external returns (uint256) {
         
-        require (Utils.isNotEmptyString(name), "ERROR_EMPTY_COLLECTION_NAME");
-        require (Utils.isNotEmptyString(description), "ERROR_EMPTY_COLLECTION_DESCRIPTION");
+        require (Utils.isNotEmptyString(ipfsPath), "ERROR_EMPTY_IPFS_PATH");
         require (price >= MINIMUM_PACK_PRICE, "ERROR_PRICE_UNDER_LIMIT");
         require (capacity >= MINIMUM_PACK_CAPACITY, "ERROR_CAPACITY_UNDER_LIMIT");
         require (blueprints.length >= MINIMUM_COLLECTION_BLUEPRINTS, "ERROR_BLUEPRINTS_UNDER_LIMIT");
 
-        uint16 currentIndex = _mapPackerToCollectionCounter[_msgSender()];
-        TokenCollection storage collection = _mapPackerToCollection[_msgSender()][currentIndex];
-        collection.name = name;
-        collection.description = description;
+        uint256 collectionId = _collectionsCounter;
+        _collectionsCounter += 1;
+        uint256 distributorCollectionIndex = _distributorCollections[_msgSender()].length;
+
+        TokenCollection storage collection = _tokenCollections[collectionId];
+        collection.ipfsPath = ipfsPath;
         collection.price = price;
         collection.capacity = capacity;
         collection.blueprints = blueprints;
 
-        // for (uint256 i; i < blueprints.length; i++) {
-        //     collection.blueprints.push(blueprints[i]);
-        // }
+        _distributorCollections[_msgSender()].push(collectionId);        
 
-        _mapPackerToCollectionCounter[_msgSender()] = currentIndex + 1;
-
-        emit CollectionCreated(_msgSender(), currentIndex);
-        return currentIndex;
+        emit CollectionCreated(_msgSender(), collectionId, distributorCollectionIndex);
+        return collectionId;
     }
 
     /**
      * @notice Buys a pack of Tokens as defined in the collection
-     * @param packer The address of the packer who created the collection for identification purposes
-     * @param collectionIndex The index of the packer collection to which the pack being bought belongs
+     * @param collectionId The collection ID to which the pack belongs
      */
-    function buyPack(address packer, uint16 collectionIndex) public returns (bytes32) {
+    function buyPack(uint256 collectionId) public returns (bytes32) {
         // TODO: price and token transfer
         // TODO: income amount split
 
-        TokenCollection storage collection = _mapPackerToCollection[packer][collectionIndex];
-        require(Utils.isNotEmptyString(collection.name), "ERROR_INVALID_COLLECTION");
+        require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
 
         uint256 seed = uint(keccak256(abi.encodePacked(_msgSender())));
         // callback function will be fulfillRandomness (see Chainlink VRF documentation)
         bytes32 requestId = _requestRandomTokens(seed);
 
-        _mapRequestIdToPurchaseOrder[requestId] = PurchaseOrder(
-            _msgSender(), packer, collectionIndex
+        _purchaseOrders[requestId] = PurchaseOrder(
+            _msgSender(), collectionId
         );
 
-        emit PurchaseOrdered(_msgSender(), packer, collectionIndex, requestId);
+        emit PurchaseOrdered(_msgSender(), collectionId, requestId);
         return requestId;
+    }
+
+    /**
+     * @notice Collection URI pointing to it's metadata.
+     */
+    function collectionURI(uint256 collectionId) external view returns (string memory) {
+        require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
+        return string(abi.encodePacked("ipfs://", _tokenCollections[collectionId].ipfsPath));
+    }
+
+    function exist(uint256 collectionId) public view returns (bool) {
+        return Utils.isNotEmptyString(_tokenCollections[collectionId].ipfsPath);
+    }
+
+    /**
+     * @notice Returns the total amount of collections stored by the contract.
+     */
+    function totalBlueprints() external view returns (uint256) {
+        return _collectionsCounter;
     }
 
     /**
@@ -173,11 +187,10 @@ contract TokenPack is Context, VRFConsumerBase {
      * @param randomNumber The random number received from chainlink
      * @param purchaseOrderId The purchase order id, ie. the request id for randomness to chainlink 
      * @param buyer The buyer address
-     * @param packer The address of the packer who created the collection for identification purposes
-     * @param collectionIndex The index of the packer collection to which the pack being bought belongs
+     * @param collectionId The collection ID to which the pack belongs
      */
-    function _openPack(uint256 randomNumber, bytes32 purchaseOrderId, address buyer, address packer, uint16 collectionIndex) internal {
-        TokenCollection storage collection = _mapPackerToCollection[packer][collectionIndex];
+    function _openPack(uint256 randomNumber, bytes32 purchaseOrderId, address buyer, uint256 collectionId) internal {
+        TokenCollection storage collection = _tokenCollections[collectionId];
 
         for (uint8 i = 0; i < collection.capacity; i++) {
             uint256 derivedRandom = uint(keccak256(abi.encodePacked(randomNumber, i)));
@@ -206,14 +219,13 @@ contract TokenPack is Context, VRFConsumerBase {
      * @notice Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        require (_mapRequestIdToPurchaseOrder[requestId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
+        require (_purchaseOrders[requestId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
 
         _openPack(
             randomness,
             requestId,
-            _mapRequestIdToPurchaseOrder[requestId].buyer,
-            _mapRequestIdToPurchaseOrder[requestId].packer,
-            _mapRequestIdToPurchaseOrder[requestId].collectionIndex
+            _purchaseOrders[requestId].buyer,
+            _purchaseOrders[requestId].collectionId
         );
     }
 }

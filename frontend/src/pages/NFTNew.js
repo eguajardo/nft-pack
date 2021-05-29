@@ -47,9 +47,9 @@ function NFTNew() {
       ethTxState.status === "Fail"
     ) {
       setButtonState({
-        class: "btn btn-danger btn-lg btn-block",
-        disabled: true,
-        text: "Failure",
+        class: "btn btn-primary btn-lg btn-block",
+        disabled: false,
+        text: "Submit NFT blueprint",
         status: ethTxState.status,
       });
     } else if (ethTxState.status === "Mining") {
@@ -170,6 +170,13 @@ function NFTNew() {
         </div>
 
         <div id="actions" className="mt-4">
+          {(ethTxState.status === "Exception" ||
+            ethTxState.status === "Fail") && (
+            <div className="alert alert-danger">
+              <strong>Error executing transaction</strong>
+              <p>{ethTxState.errorMessage}</p>
+            </div>
+          )}
           <button
             name="submit"
             className={buttonState.class}
