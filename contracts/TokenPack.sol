@@ -22,7 +22,7 @@ contract TokenPack is Context, VRFConsumerBase {
 
     uint8 public constant MINIMUM_PACK_PRICE = 1;
     uint8 public constant MINIMUM_PACK_CAPACITY = 1;
-    uint8 public constant MINIMUM_COLLECTION_BLUEPRINTS = 10;
+    uint8 public constant MINIMUM_COLLECTION_BLUEPRINTS = 5;
 
     Token private tokenContract;
 
@@ -178,7 +178,7 @@ contract TokenPack is Context, VRFConsumerBase {
     /**
      * @notice Returns the total amount of collections stored by the contract.
      */
-    function totalBlueprints() external view returns (uint256) {
+    function totalCollections() external view returns (uint256) {
         return _collectionsCounter;
     }
 

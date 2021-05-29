@@ -270,7 +270,7 @@ export const contracts = {
       },
       {
         "inputs": [],
-        "name": "totalBlueprints",
+        "name": "totalCollections",
         "outputs": [
           {
             "internalType": "uint256",

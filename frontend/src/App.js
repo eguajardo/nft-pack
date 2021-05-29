@@ -3,6 +3,7 @@ import { Switch, Route } from 'react-router-dom';
 
 import NFTIndex from './pages/NFTIndex'
 import NFTNew from './pages/NFTNew';
+import CollectionIndex from './pages/CollectionIndex';
 
 import Navbar from './components/Layout/Navbar';
 
@@ -18,7 +19,7 @@ function App() {
           <NFTIndex />
         </Route>
         <Route path="/boosters">
-          
+          <CollectionIndex />
         </Route>
       </Switch>
     </div>

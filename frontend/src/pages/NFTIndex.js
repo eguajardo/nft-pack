@@ -20,8 +20,6 @@ function NFTIndex() {
       args: [],
     }) ?? [];
 
-  console.log("render");
-
   const setSelected = useCallback(
     (blueprintId, selected) => {
       let newArray = [];
@@ -40,8 +38,6 @@ function NFTIndex() {
 
   const loadContent = useCallback(async () => {
     if (totalBlueprints) {
-      console.log("totalBlueprints:", totalBlueprints.toNumber());
-
       const blueprint = new ethers.Contract(
         contracts.Blueprint.address,
         contracts.Blueprint.abi,
