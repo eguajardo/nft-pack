@@ -1,46 +1,54 @@
-import { useRef, useState } from "react";
-import { uploadFileToIPFS, uploadJsonToIPFS } from "../utils/ipfs-utils";
+import { useEffect, useRef, useState } from "react";
+import { uploadFileToIPFS, uploadJsonToIPFS } from "../../utils/ipfs-utils";
 import { Contract } from "@ethersproject/contracts";
-import { contracts } from "../utils/contracts-utils";
+import { contracts } from "../../utils/contracts-utils";
 import { utils } from "ethers";
 import { useContractFunction } from "@usedapp/core";
 
-function NFTNew() {
-  const titleInputRef = useRef();
+function CollectionForm(props) {
+  // string name;
+  // string description;
+  // uint256 price;
+  // uint8 capacity;
+  // uint256[] blueprints;
+
+  const nameInputRef = useRef();
   const descriptionInputRef = useRef();
+  const priceInputRef = useRef();
+  const capacityInputRef = useRef();
   const fileInputRef = useRef();
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
     disabled: false,
-    text: "Submit NFT blueprint",
-    status: "None",
+    text: "Submit collection"
   });
 
-  const [enteredTitleIsValid, setEnteredTitleIsValid] = useState(true);
+  const [enteredTitleIsValid, setEnteredNameIsValid] = useState(true);
   const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
     useState(true);
+  const [enteredPriceIsValid, setEnteredPriceIsValid] = useState(true);
+  const [enteredCapacityIsValid, setEnteredCapacityIsValid] = useState(true);
   const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
 
-  const blueprintContract = new Contract(
-    contracts.Blueprint.address,
-    new utils.Interface(contracts.Blueprint.abi)
+  const tokenPackContract = new Contract(
+    contracts.TokenPack.address,
+    new utils.Interface(contracts.TokenPack.abi)
   );
 
-  const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
-    blueprintContract,
-    "createBlueprint"
+  const { state: ethTxState, send: sendCreateCollection } = useContractFunction(
+    tokenPackContract,
+    "createTokenCollection"
   );
 
   console.log(ethTxState);
 
-  if (buttonState.status !== ethTxState.status) {
+  useEffect(() => {
     if (ethTxState.status === "Success") {
       setButtonState({
         class: "btn btn-success btn-lg btn-block",
         disabled: true,
-        text: "Success!",
-        status: ethTxState.status,
+        text: "Success!"
       });
     } else if (
       ethTxState.status === "Exception" ||
@@ -49,39 +57,51 @@ function NFTNew() {
       setButtonState({
         class: "btn btn-danger btn-lg btn-block",
         disabled: true,
-        text: "Failure",
-        status: ethTxState.status,
+        text: "Failure"
       });
     } else if (ethTxState.status === "Mining") {
       setButtonState({
         class: "btn btn-primary btn-lg btn-block",
         disabled: true,
-        text: "Processing...",
-        status: ethTxState.status,
+        text: "Processing..."
       });
     }
-  }
+  }, [ethTxState]);
 
   const formSubmissionHandler = async (event) => {
     event.preventDefault();
 
-    const enteredTitle = titleInputRef.current.value;
+    const enteredName = nameInputRef.current.value;
     const enteredDescription = descriptionInputRef.current.value;
+    const enteredPrice = priceInputRef.current.value;
+    const enteredCapacity = capacityInputRef.current.value;
     const enteredFile = fileInputRef.current.files[0];
 
     let error = false;
 
-    if (enteredTitle.trim() === "") {
-      setEnteredTitleIsValid(false);
+    if (enteredName.trim() === "") {
+      setEnteredNameIsValid(false);
       error = true;
     } else {
-      setEnteredTitleIsValid(true);
+      setEnteredNameIsValid(true);
     }
     if (enteredDescription.trim() === "") {
       setEnteredDescriptionIsValid(false);
       error = true;
     } else {
       setEnteredDescriptionIsValid(true);
+    }
+    if (enteredPrice <= 0.0) {
+      setEnteredPriceIsValid(false);
+      error = true;
+    } else {
+      setEnteredPriceIsValid(true);
+    }
+    if (enteredCapacity <= 0) {
+      setEnteredCapacityIsValid(false);
+      error = true;
+    } else {
+      setEnteredCapacityIsValid(true);
     }
     if (enteredFile === undefined) {
       setEnteredFileIsValid(false);
@@ -97,37 +117,42 @@ function NFTNew() {
     setButtonState({
       class: "btn btn-primary btn-lg btn-block",
       disabled: true,
-      text: "Processing...",
-      status: ethTxState.status,
+      text: "Processing..."
     });
 
     const imageIpfsPath = await uploadFileToIPFS(enteredFile);
 
     const metadata = {
-      name: enteredTitle,
+      name: enteredName,
       description: enteredDescription,
       image: "ipfs://" + imageIpfsPath,
     };
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
-    sendCreateBlueprint(metadataIpfsPath);
+    //sendCreateCollection(metadataIpfsPath);
 
-    titleInputRef.current.value = "";
+    nameInputRef.current.value = "";
     descriptionInputRef.current.value = "";
+    priceInputRef.current.value = 0.0;
+    capacityInputRef.current.value = 0;
     fileInputRef.current.value = "";
   };
 
   return (
-    <div className="container content-container">
+    <div>
+      <button className="close" onClick={props.closeCollectionForm}>
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <br />
       <form onSubmit={formSubmissionHandler}>
         <div className="form-group">
-          <label htmlFor="title">Title</label>
+          <label htmlFor="name">Name</label>
           <input
-            ref={titleInputRef}
+            ref={nameInputRef}
             type="text"
-            name="title"
-            id="title"
-            placeholder="Your NFT's title"
+            name="name"
+            id="name"
+            placeholder="Your collection's name"
             className={
               enteredTitleIsValid ? "form-control" : "form-control is-invalid"
             }
@@ -150,6 +175,40 @@ function NFTNew() {
             }
           />
           <div className="invalid-feedback">Description must not be empty</div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="price">Price</label>
+          <input
+            ref={priceInputRef}
+            type="number"
+            name="price"
+            step="0.01"
+            id="price"
+            className={
+              enteredPriceIsValid
+                ? "form-control"
+                : "form-control is-invalid"
+            }
+          />
+          <div className="invalid-feedback">Price must be grater than 0</div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="capacity">Cards per booster pack</label>
+          <input
+            ref={capacityInputRef}
+            type="number"
+            name="capacity"
+            step="1"
+            id="capacity"
+            className={
+              enteredCapacityIsValid
+                ? "form-control"
+                : "form-control is-invalid"
+            }
+          />
+          <div className="invalid-feedback">Cards per booster must be grater than 0</div>
         </div>
 
         <div className="form-group">
@@ -183,4 +242,4 @@ function NFTNew() {
   );
 }
 
-export default NFTNew;
+export default CollectionForm;

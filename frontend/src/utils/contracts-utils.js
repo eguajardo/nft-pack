@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0x532802f2F9E0e3EE9d5Ba70C35E1F43C0498772D",
+    "address": "0xb830887eE23d3f9Ed8c27dbF7DcFe63037765475",
     "abi": [
       {
         "inputs": [
@@ -243,7 +243,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0x1D3cb6157ECb64c5731Dd345CE3a115fcD68C425",
+    "address": "0x5401d7362F426a4BC700f1284FFBa6C409A1F18e",
     "abi": [
       {
         "inputs": [
@@ -952,7 +952,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x2E01dC71A50743b1536072fFa5486452CcD55A68",
+    "address": "0x0AC9654311e9DE076577eA1C0c263cE5161667AE",
     "abi": [
       {
         "anonymous": false,
