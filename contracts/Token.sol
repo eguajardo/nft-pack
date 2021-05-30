@@ -31,9 +31,9 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
     }
 
     /**
-     * @notice Emitted when the 'tokenId' is minted and transfered to the 'owner' using the blueprint id 'blueprintId'
+     * @notice Emitted when the 'tokenId' is minted and transfered to the 'owner' in accordance to purchase order 'purchaseOrderId'
      */
-    event Minted(uint256 indexed tokenId, address owner, uint256 indexed blueprintId);
+    event Minted(uint256 indexed tokenId, address owner, bytes32 indexed purchaseOrderId);
 
     /**
      * @notice Gets the address of the used ERC721 for minting
@@ -47,17 +47,17 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
      * @notice Mint a token based on the author's blueprint
      * @param to The address to where the minted token will be transfered
      * @param blueprintId The id of the NFT blueprint
+     * @param purchaseOrderId The purchase order used to mint this Token
      */
-    function mintFromBlueprint(address to, uint256 blueprintId) public virtual {
+    function mintFromBlueprint(address to, uint256 blueprintId, bytes32 purchaseOrderId) public virtual {
         require (hasRole(MINTER_ROLE, _msgSender()), "ERROR_UNAUTHORIZED_MINTER");
         require (blueprintContract.exist(blueprintId), "ERROR_INVALID_BLUEPRINT_ID");
 
         uint256 tokenId = totalSupply();
         _tokenBlueprints[tokenId] = blueprintId;
-
         _safeMint(to, tokenId);
 
-        emit Minted(tokenId, to, blueprintId);
+        emit Minted(tokenId, to, purchaseOrderId);
     }
 
     /**

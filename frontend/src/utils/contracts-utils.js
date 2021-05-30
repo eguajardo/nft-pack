@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0xb830887eE23d3f9Ed8c27dbF7DcFe63037765475",
+    "address": "0x9D3999af03458c11C78F7e6C0fAE712b455D4e33",
     "abi": [
       {
         "inputs": [
@@ -92,7 +92,7 @@ export const contracts = {
             "type": "address"
           },
           {
-            "indexed": false,
+            "indexed": true,
             "internalType": "uint256",
             "name": "collectionId",
             "type": "uint256"
@@ -256,6 +256,47 @@ export const contracts = {
         "type": "function"
       },
       {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "collectionId",
+            "type": "uint256"
+          }
+        ],
+        "name": "tokenCollection",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "ipfsPath",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "price",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint8",
+                "name": "capacity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint256[]",
+                "name": "blueprints",
+                "type": "uint256[]"
+              }
+            ],
+            "internalType": "struct TokenPack.TokenCollection",
+            "name": "",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
         "inputs": [],
         "name": "tokenContractAddress",
         "outputs": [
@@ -284,7 +325,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0x5401d7362F426a4BC700f1284FFBa6C409A1F18e",
+    "address": "0xb261804fD8DAA58D311EDbd956a4c0538DB75d46",
     "abi": [
       {
         "inputs": [
@@ -374,9 +415,9 @@ export const contracts = {
           },
           {
             "indexed": true,
-            "internalType": "uint256",
-            "name": "blueprintId",
-            "type": "uint256"
+            "internalType": "bytes32",
+            "name": "purchaseOrderId",
+            "type": "bytes32"
           }
         ],
         "name": "Minted",
@@ -716,6 +757,11 @@ export const contracts = {
             "internalType": "uint256",
             "name": "blueprintId",
             "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "purchaseOrderId",
+            "type": "bytes32"
           }
         ],
         "name": "mintFromBlueprint",
@@ -993,7 +1039,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x0AC9654311e9DE076577eA1C0c263cE5161667AE",
+    "address": "0x28aA868Ad4685734ca0CEe131Ad27bA32E4AaF94",
     "abi": [
       {
         "anonymous": false,

@@ -72,6 +72,7 @@ async function main() {
     await loadTestBlueprints(blueprint);
   }
 
+  console.log("VRFCoordinator contract address:", vrfCoordinatorAddress);
   console.log("Utils contract address:", utils.address);
   console.log("Multicall contract address:", multicallAddress);
   console.log("TokenPack contract Address:", tokenPack.address);

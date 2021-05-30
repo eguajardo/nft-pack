@@ -162,7 +162,7 @@ describe("TokenPack contract", () => {
         IPFS_PATH,
         PRICE,
         CAPACITY,
-        await blueprintGenerator(9)
+        await blueprintGenerator(4)
       )
     ).to.be.revertedWith("ERROR_BLUEPRINTS_UNDER_LIMIT");
   });
@@ -184,7 +184,6 @@ describe("TokenPack contract", () => {
 
     // Non state changing call just to preview the requestId
     const requestId = await tokenPack.callStatic.buyPack(1);
-
     const tx: TransactionResponse = await tokenPack.buyPack(1);
 
     await expect(tx)
@@ -195,12 +194,33 @@ describe("TokenPack contract", () => {
       await vrfCoordinator.callBackWithRandomness(
         requestId,
         777,
-        tokenPack.address
+        tokenPack.address,
+        { gasLimit: 200000 }
       );
 
     await expect(vrfTx)
       .to.emit(tokenPack, "PackOpened")
       .withArgs(requestId, distributorSigner.address);
+
+    // Second pucase
+    const requestId2 = await tokenPack.callStatic.buyPack(1);
+    const tx2: TransactionResponse = await tokenPack.buyPack(1);
+
+    await expect(tx2)
+      .to.emit(tokenPack, "PurchaseOrdered")
+      .withArgs(distributorSigner.address, 1, requestId2);
+
+    const vrftx2: TransactionResponse =
+      await vrfCoordinator.callBackWithRandomness(
+        requestId2,
+        777,
+        tokenPack.address,
+        { gasLimit: 200000 }
+      );
+
+    await expect(vrftx2)
+      .to.emit(tokenPack, "PackOpened")
+      .withArgs(requestId2, distributorSigner.address);
   });
 
   it("Fails buying invalid collection", async () => {

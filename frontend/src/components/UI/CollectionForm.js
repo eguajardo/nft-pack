@@ -6,12 +6,6 @@ import { utils } from "ethers";
 import { useContractFunction } from "@usedapp/core";
 
 function CollectionForm(props) {
-  // string name;
-  // string description;
-  // uint256 price;
-  // uint8 capacity;
-  // uint256[] blueprints;
-
   const nameInputRef = useRef();
   const descriptionInputRef = useRef();
   const priceInputRef = useRef();
@@ -133,6 +127,8 @@ function CollectionForm(props) {
       description: enteredDescription,
       image: "ipfs://" + imageIpfsPath,
     };
+
+    console.log("selected blueprints:", props.selectedBlueprints);
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
     sendCreateCollection(

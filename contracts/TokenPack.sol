@@ -92,7 +92,7 @@ contract TokenPack is Context, VRFConsumerBase {
     /**
      * @notice Emitted when the 'buyer' generates a 'purchaseOrderId' for purchasing a pack from the collection with ID 'collectionId'
      */
-    event PurchaseOrdered (address indexed buyer, uint256 collectionId, bytes32 indexed purchaseOrderId);
+    event PurchaseOrdered (address indexed buyer, uint256 indexed collectionId, bytes32 indexed purchaseOrderId);
 
     /**
      * @notice Emitted when the pack bought by 'buyer' in 'purchaseOrderId' was opened
@@ -165,10 +165,22 @@ contract TokenPack is Context, VRFConsumerBase {
 
     /**
      * @notice Collection URI pointing to it's metadata.
+     * @param collectionId The ID of the collection to look for
+     * @return the collection URI pointing to its metadata
      */
     function collectionURI(uint256 collectionId) external view returns (string memory) {
         require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
         return string(abi.encodePacked("ipfs://", _tokenCollections[collectionId].ipfsPath));
+    }
+
+    /**
+     * @notice Gets the TokenCollection struct containing all its relevant information
+     * @param collectionId The ID of the collection to look for
+     * @return the TokenCollection struct containing all its relevant information
+     */
+    function tokenCollection(uint256 collectionId) external view returns (TokenCollection memory) {
+        require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
+        return _tokenCollections[collectionId];
     }
 
     function exist(uint256 collectionId) public view returns (bool) {
@@ -199,10 +211,10 @@ contract TokenPack is Context, VRFConsumerBase {
 
             tokenContract.mintFromBlueprint(
                 buyer, 
-                collection.blueprints[index]
+                collection.blueprints[index],
+                purchaseOrderId
             );
         }
-
         emit PackOpened(purchaseOrderId, buyer);
     }
 

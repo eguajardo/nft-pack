@@ -6,6 +6,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber, ContractFactory } from "ethers";
 
 describe("Token contract", () => {
+  const PURCHASE_ORDER_ID =
+    "0xe6dee4b0f846610cfb562207cb4f020aadcb6d0fa7b4e2c0b2db4a15e5a4936a";
+
   let token: Contract;
   let signers: SignerWithAddress[];
   let authorSigner: SignerWithAddress;
@@ -69,12 +72,13 @@ describe("Token contract", () => {
         signers[3].address, // receptor
         (
           await blueprintGenerator(2)
-        )[1] // blueprint id
+        )[1], // blueprint id
+        PURCHASE_ORDER_ID
       );
 
     await expect(tx)
       .to.emit(token, "Minted")
-      .withArgs(0, signers[3].address, 1);
+      .withArgs(0, signers[3].address, PURCHASE_ORDER_ID);
 
     const balance: BigNumber = await token.balanceOf(signers[3].address);
     expect(balance.toNumber()).to.equals(1);
@@ -83,7 +87,8 @@ describe("Token contract", () => {
   it("Fails minting without minter role", async () => {
     const tx: Promise<TransactionResponse> = token.mintFromBlueprint(
       signers[3].address, // receptor
-      (await blueprintGenerator(1))[0] // blueprint index
+      (await blueprintGenerator(1))[0], // blueprint index
+      PURCHASE_ORDER_ID
     );
 
     await expect(tx).to.be.revertedWith("ERROR_UNAUTHORIZED_MINTER");
@@ -94,7 +99,8 @@ describe("Token contract", () => {
       .connect(minterSigner)
       .mintFromBlueprint(
         signers[3].address, // receptor
-        0 // blueprint index
+        0, // blueprint index
+        PURCHASE_ORDER_ID
       );
 
     await expect(tx).to.be.revertedWith("ERROR_INVALID_BLUEPRINT_ID");
@@ -107,7 +113,8 @@ describe("Token contract", () => {
         signers[3].address, // receptor
         (
           await blueprintGenerator(2)
-        )[1] // blueprint index
+        )[1], // blueprint index
+        PURCHASE_ORDER_ID
       );
 
     const uri: string = await token.tokenURI(0);
