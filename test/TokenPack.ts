@@ -16,6 +16,7 @@ describe("TokenPack contract", () => {
   const CAPACITY: Number = 5;
 
   let tokenPack: Contract;
+  let token: Contract;
   let vrfCoordinator: Contract;
   let signers: SignerWithAddress[];
   let distributorSigner: SignerWithAddress;
@@ -68,7 +69,7 @@ describe("TokenPack contract", () => {
         },
       }
     );
-    const token = tokenFactory.attach(await tokenPack.tokenContractAddress());
+    token = tokenFactory.attach(await tokenPack.tokenContractAddress());
 
     const blueprintFactory: ContractFactory = await ethers.getContractFactory(
       "Blueprint",
@@ -195,12 +196,12 @@ describe("TokenPack contract", () => {
         requestId,
         777,
         tokenPack.address,
-        { gasLimit: 200000 }
+        { gasLimit: 230000 }
       );
 
     await expect(vrfTx)
-      .to.emit(tokenPack, "PackOpened")
-      .withArgs(requestId, distributorSigner.address);
+      .to.emit(tokenPack, "PurchaseOrderSigned")
+      .withArgs(requestId);
 
     // Second pucase
     const requestId2 = await tokenPack.callStatic.buyPack(1);
@@ -215,12 +216,15 @@ describe("TokenPack contract", () => {
         requestId2,
         777,
         tokenPack.address,
-        { gasLimit: 200000 }
+        { gasLimit: 230000 }
       );
 
     await expect(vrftx2)
-      .to.emit(tokenPack, "PackOpened")
-      .withArgs(requestId2, distributorSigner.address);
+      .to.emit(tokenPack, "PurchaseOrderSigned")
+      .withArgs(requestId2);
+
+    const uri: string = await token.tokenURI(0);
+    expect(uri).to.equals("ipfs://IPFS_PATH_3");
   });
 
   it("Fails buying invalid collection", async () => {

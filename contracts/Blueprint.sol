@@ -13,14 +13,14 @@ import "./Utils.sol";
 contract Blueprint is Context {
 
     /**
-     * @dev Mapping from author to list of authored blueprint IDs
-     */
-    mapping (address => uint256[]) private _authoredBlueprints;
-
-    /**
      * @dev Array storing all blueprint IPFS metadata paths
      */
     string[] private _blueprintsIpfs;
+
+    /**
+     * @dev Mapping from author to list of authored blueprint IDs
+     */
+    mapping(address => uint256[]) private _authoredBlueprints;
 
      /**
      * @notice Emitted when the 'author' creates the blueprint with ID 'blueprintId' and index 'authorBlueprintIndex'

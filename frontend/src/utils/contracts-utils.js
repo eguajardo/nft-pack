@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0x9D3999af03458c11C78F7e6C0fAE712b455D4e33",
+    "address": "0xb830887eE23d3f9Ed8c27dbF7DcFe63037765475",
     "abi": [
       {
         "inputs": [
@@ -71,15 +71,9 @@ export const contracts = {
             "internalType": "bytes32",
             "name": "purchaseOrderId",
             "type": "bytes32"
-          },
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "buyer",
-            "type": "address"
           }
         ],
-        "name": "PackOpened",
+        "name": "PurchaseOrderSigned",
         "type": "event"
       },
       {
@@ -241,6 +235,30 @@ export const contracts = {
         "inputs": [
           {
             "internalType": "bytes32",
+            "name": "purchaseOrderId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          }
+        ],
+        "name": "mintedBlueprint",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
             "name": "requestId",
             "type": "bytes32"
           },
@@ -325,7 +343,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0xb261804fD8DAA58D311EDbd956a4c0538DB75d46",
+    "address": "0x5401d7362F426a4BC700f1284FFBa6C409A1F18e",
     "abi": [
       {
         "inputs": [
@@ -341,7 +359,7 @@ export const contracts = {
           },
           {
             "internalType": "address",
-            "name": "minter",
+            "name": "tokenPackAddress",
             "type": "address"
           }
         ],
@@ -754,17 +772,17 @@ export const contracts = {
             "type": "address"
           },
           {
-            "internalType": "uint256",
-            "name": "blueprintId",
-            "type": "uint256"
-          },
-          {
             "internalType": "bytes32",
             "name": "purchaseOrderId",
             "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
           }
         ],
-        "name": "mintFromBlueprint",
+        "name": "mintFromPack",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -1039,7 +1057,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x28aA868Ad4685734ca0CEe131Ad27bA32E4AaF94",
+    "address": "0x0AC9654311e9DE076577eA1C0c263cE5161667AE",
     "abi": [
       {
         "anonymous": false,

@@ -68,12 +68,10 @@ describe("Token contract", () => {
   it("Mints NFT token", async () => {
     const tx: TransactionResponse = await token
       .connect(minterSigner)
-      .mintFromBlueprint(
+      .mintFromPack(
         signers[3].address, // receptor
-        (
-          await blueprintGenerator(2)
-        )[1], // blueprint id
-        PURCHASE_ORDER_ID
+        PURCHASE_ORDER_ID,
+        0
       );
 
     await expect(tx)
@@ -85,40 +83,13 @@ describe("Token contract", () => {
   });
 
   it("Fails minting without minter role", async () => {
-    const tx: Promise<TransactionResponse> = token.mintFromBlueprint(
+    const tx: Promise<TransactionResponse> = token.mintFromPack(
       signers[3].address, // receptor
-      (await blueprintGenerator(1))[0], // blueprint index
-      PURCHASE_ORDER_ID
+      PURCHASE_ORDER_ID,
+      0
     );
 
     await expect(tx).to.be.revertedWith("ERROR_UNAUTHORIZED_MINTER");
-  });
-
-  it("Fails when blueprint doesn't exists", async () => {
-    const tx: Promise<TransactionResponse> = token
-      .connect(minterSigner)
-      .mintFromBlueprint(
-        signers[3].address, // receptor
-        0, // blueprint index
-        PURCHASE_ORDER_ID
-      );
-
-    await expect(tx).to.be.revertedWith("ERROR_INVALID_BLUEPRINT_ID");
-  });
-
-  it("Returns correct tokenURI", async () => {
-    const tx: TransactionResponse = await token
-      .connect(minterSigner)
-      .mintFromBlueprint(
-        signers[3].address, // receptor
-        (
-          await blueprintGenerator(2)
-        )[1], // blueprint index
-        PURCHASE_ORDER_ID
-      );
-
-    const uri: string = await token.tokenURI(0);
-    expect(uri).to.equals("ipfs://IPFS_PATH_1");
   });
 
   it("Fails with invalid tokenID", async () => {

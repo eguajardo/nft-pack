@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 import "./Blueprint.sol";
+import "./TokenPack.sol";
 import "./Utils.sol";
 
 /**
@@ -12,28 +13,40 @@ import "./Utils.sol";
  * @notice The ERC721 that is hold by packs. Tokens are created from author's blueprints
  */
 contract Token is ERC721Enumerable, AccessControlEnumerable {
+    /**
+     * @notice Struct holding relevant information from the minting process
+     */
+    struct MintData {
+        bytes32 purchaseOrderId;
+        uint256 index; // index in the pack
+    }
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     Blueprint private blueprintContract;
+    TokenPack private tokenPackContract;
 
     /**
-     * @dev Mapping of token ID to blueprint ID
+     * @dev Map of tokens to their mint data
      */
-    mapping (uint256 => uint256) _tokenBlueprints;
-
-    /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` and `minter` for the token.
-     */
-    constructor (string memory name_, string memory symbol_, address minter) ERC721(name_, symbol_) { 
-        _setupRole(MINTER_ROLE, minter);
-        blueprintContract = new Blueprint();
-    }
+    mapping(uint256 => MintData) private _mintData;
 
     /**
      * @notice Emitted when the 'tokenId' is minted and transfered to the 'owner' in accordance to purchase order 'purchaseOrderId'
      */
     event Minted(uint256 indexed tokenId, address owner, bytes32 indexed purchaseOrderId);
+
+    /**
+     * @notice Initializes the contract by setting a `name`, `symbol` and `minter` for the token.
+     */
+    constructor (string memory name_, 
+            string memory symbol_,
+            address tokenPackAddress
+    ) ERC721(name_, symbol_) { 
+        _setupRole(MINTER_ROLE, tokenPackAddress);
+        blueprintContract = new Blueprint();
+        tokenPackContract = TokenPack(tokenPackAddress);
+    }
 
     /**
      * @notice Gets the address of the used ERC721 for minting
@@ -46,16 +59,16 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
     /**
      * @notice Mint a token based on the author's blueprint
      * @param to The address to where the minted token will be transfered
-     * @param blueprintId The id of the NFT blueprint
      * @param purchaseOrderId The purchase order used to mint this Token
+     * @param index The position in the opened pack containing this Token
      */
-    function mintFromBlueprint(address to, uint256 blueprintId, bytes32 purchaseOrderId) public virtual {
+    function mintFromPack(address to, bytes32 purchaseOrderId, uint256 index) public virtual {
         require (hasRole(MINTER_ROLE, _msgSender()), "ERROR_UNAUTHORIZED_MINTER");
-        require (blueprintContract.exist(blueprintId), "ERROR_INVALID_BLUEPRINT_ID");
 
         uint256 tokenId = totalSupply();
-        _tokenBlueprints[tokenId] = blueprintId;
         _safeMint(to, tokenId);
+        _mintData[tokenId].purchaseOrderId = purchaseOrderId;
+        _mintData[tokenId].index = index;
 
         emit Minted(tokenId, to, purchaseOrderId);
     }
@@ -66,7 +79,10 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERROR_INVALID_TOKEN_ID");
 
-        uint256 blueprintId = _tokenBlueprints[tokenId];
+        uint256 blueprintId = tokenPackContract.mintedBlueprint(
+            _mintData[tokenId].purchaseOrderId, 
+            _mintData[tokenId].index
+        );
 
         return blueprintContract.blueprintURI(blueprintId);
     }

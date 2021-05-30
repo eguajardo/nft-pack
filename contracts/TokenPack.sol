@@ -15,16 +15,68 @@ import "./Utils.sol";
 contract TokenPack is Context, VRFConsumerBase {
     using Strings for uint256;
 
-    bytes32 internal keyHash;
-    uint256 internal chainlinkFee;
+    /**
+     * @notice Struct containing the collection details
+     */
+    struct TokenCollection {
+        string ipfsPath;
+        uint256 price;
+        uint8 capacity;
+        uint256[] blueprints;
+    }
 
-    uint256 internal randomResult;
+    /**
+     * @notice Struct containing information from purchase order
+     */
+    struct PurchaseOrder {
+        address buyer;
+        uint256 collectionId;
+        uint256 signature;      // random number coming from Chainlink
+    }
 
     uint8 public constant MINIMUM_PACK_PRICE = 1;
     uint8 public constant MINIMUM_PACK_CAPACITY = 1;
     uint8 public constant MINIMUM_COLLECTION_BLUEPRINTS = 5;
 
-    Token private tokenContract;
+    bytes32 internal keyHash;
+    uint256 internal chainlinkFee;
+
+    Token internal tokenContract;
+
+    /**
+     * @dev Keeps track of total of collections
+     */
+    uint256 private _collectionsCounter;
+
+    /**
+     * @dev Mapping from distributor to list of collections IDs
+     */
+    mapping(address => uint256[]) private _distributorCollections;
+
+    /**
+     * @dev Mapping storing all TokenCollections
+     */
+    mapping(uint256 => TokenCollection) private _tokenCollections;
+
+    /**
+     * @dev Mapping from the requestId for randomness (ie. purchase order id) to the Purchase order
+     */
+    mapping(bytes32 => PurchaseOrder) private _purchaseOrders;
+
+    /**
+     * @notice Emitted when the sender 'distributor' creates the collection with index 'collectionIndex'
+     */
+    event CollectionCreated (address indexed distributor, uint256 indexed collectionId, uint256 distributorCollectionIndex);
+
+    /**
+     * @notice Emitted when the 'buyer' generates a 'purchaseOrderId' for purchasing a pack from the collection with ID 'collectionId'
+     */
+    event PurchaseOrdered (address indexed buyer, uint256 indexed collectionId, bytes32 indexed purchaseOrderId);
+
+    /**
+     * @notice Emitted when the purchase order with 'purchaseOrderId' was signed
+     */
+    event PurchaseOrderSigned (bytes32 indexed purchaseOrderId);
 
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` for the token.
@@ -45,59 +97,6 @@ contract TokenPack is Context, VRFConsumerBase {
         chainlinkFee = chainlinkFee_;
         tokenContract = new Token(name, symbol, address(this));
     }
-    
-    /**
-     * @notice Struct containing the collection details
-     */
-    struct TokenCollection {
-        string ipfsPath;
-        uint256 price;
-        uint8 capacity;
-        uint256[] blueprints;
-    }
-
-    /**
-     * @notice Struct containing information from purchase order
-     */
-    struct PurchaseOrder {
-        address buyer;
-        uint256 collectionId;
-    }
-
-    /**
-     * @dev Mapping from distributor to list of collections IDs
-     */
-    mapping (address => uint256[]) private _distributorCollections;
-
-    /**
-     * @dev Keeps track of total of collections
-     */
-    uint256 private _collectionsCounter;
-
-    /**
-     * @dev Mapping storing all TokenCollections
-     */
-    mapping (uint256 => TokenCollection) private _tokenCollections;
-
-    /**
-     * @dev Mapping from the requestId for randomness (ie. purchase order id) to the Purchase order
-     */
-    mapping (bytes32 => PurchaseOrder) private _purchaseOrders;
-
-    /**
-     * @notice Emitted when the sender 'distributor' creates the collection with index 'collectionIndex'
-     */
-    event CollectionCreated (address indexed distributor, uint256 indexed collectionId, uint256 distributorCollectionIndex);
-
-    /**
-     * @notice Emitted when the 'buyer' generates a 'purchaseOrderId' for purchasing a pack from the collection with ID 'collectionId'
-     */
-    event PurchaseOrdered (address indexed buyer, uint256 indexed collectionId, bytes32 indexed purchaseOrderId);
-
-    /**
-     * @notice Emitted when the pack bought by 'buyer' in 'purchaseOrderId' was opened
-     */
-    event PackOpened (bytes32 indexed purchaseOrderId, address indexed buyer);
 
     /**
      * @notice Gets the address of the used ERC721 for minting
@@ -153,14 +152,23 @@ contract TokenPack is Context, VRFConsumerBase {
 
         uint256 seed = uint(keccak256(abi.encodePacked(_msgSender())));
         // callback function will be fulfillRandomness (see Chainlink VRF documentation)
-        bytes32 requestId = _requestRandomTokens(seed);
+        bytes32 purchaseOrderId = _requestRandomTokens(seed);
 
-        _purchaseOrders[requestId] = PurchaseOrder(
-            _msgSender(), collectionId
+        _purchaseOrders[purchaseOrderId] = PurchaseOrder(
+            _msgSender(), collectionId, 0
         );
 
-        emit PurchaseOrdered(_msgSender(), collectionId, requestId);
-        return requestId;
+        TokenCollection storage collection = _tokenCollections[collectionId];
+        for (uint256 i = 0; i < collection.capacity; i++) {
+            tokenContract.mintFromPack(
+                _msgSender(), 
+                purchaseOrderId,
+                i
+            );
+        }
+
+        emit PurchaseOrdered(_msgSender(), collectionId, purchaseOrderId);
+        return purchaseOrderId;
     }
 
     /**
@@ -175,12 +183,33 @@ contract TokenPack is Context, VRFConsumerBase {
 
     /**
      * @notice Gets the TokenCollection struct containing all its relevant information
+
      * @param collectionId The ID of the collection to look for
      * @return the TokenCollection struct containing all its relevant information
      */
     function tokenCollection(uint256 collectionId) external view returns (TokenCollection memory) {
         require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
         return _tokenCollections[collectionId];
+    }
+
+    /**
+     * @notice Gets the ID of the blueprint for the minted token from the purchase order and token index
+     * @param purchaseOrderId The purchase order ID that minted the token
+     * @param index The index of the minted token in the pack purchased
+     */
+    function mintedBlueprint(bytes32 purchaseOrderId, uint256 index) external view returns (uint256) {
+        require(_purchaseOrders[purchaseOrderId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
+        
+        uint256 signature = _purchaseOrders[purchaseOrderId].signature;
+        uint256 collectionId = _purchaseOrders[purchaseOrderId].collectionId;
+
+        require(signature != 0, "ERROR_TOKEN_NOT_SIGNED");
+        
+        // Calculated based on Chainlink's signature. 
+        uint256 tokenSignature = uint(keccak256(abi.encodePacked(signature, index)));
+        uint256 blueprintIndex = tokenSignature % _tokenCollections[collectionId].blueprints.length;
+        
+        return _tokenCollections[collectionId].blueprints[blueprintIndex];
     }
 
     function exist(uint256 collectionId) public view returns (bool) {
@@ -194,30 +223,6 @@ contract TokenPack is Context, VRFConsumerBase {
         return _collectionsCounter;
     }
 
-    /**
-     * @dev internal function caalled after random number is generated to open the pack bought
-     * @param randomNumber The random number received from chainlink
-     * @param purchaseOrderId The purchase order id, ie. the request id for randomness to chainlink 
-     * @param buyer The buyer address
-     * @param collectionId The collection ID to which the pack belongs
-     */
-    function _openPack(uint256 randomNumber, bytes32 purchaseOrderId, address buyer, uint256 collectionId) internal {
-        TokenCollection storage collection = _tokenCollections[collectionId];
-
-        for (uint8 i = 0; i < collection.capacity; i++) {
-            uint256 derivedRandom = uint(keccak256(abi.encodePacked(randomNumber, i)));
-
-            uint256 index = derivedRandom % collection.blueprints.length;
-
-            tokenContract.mintFromBlueprint(
-                buyer, 
-                collection.blueprints[index],
-                purchaseOrderId
-            );
-        }
-        emit PackOpened(purchaseOrderId, buyer);
-    }
-
     /** 
      * @dev Requests random number from chainlink to generate content of pack
      */
@@ -229,15 +234,16 @@ contract TokenPack is Context, VRFConsumerBase {
 
     /**
      * @notice Callback function used by VRF Coordinator
+     * This is done so that chainlink's callback doesn't run out of gas when 
+     * opening booster packs with high capacity.
+     * This way we mint the tokens during the purchase order and Chainlink only
+     * signs the order.
+     * The signature is used to calculate the blueprint of the Token
      */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        require (_purchaseOrders[requestId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
+    function fulfillRandomness(bytes32 purchaseOrderId, uint256 randomness) internal override {
+        require (_purchaseOrders[purchaseOrderId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
 
-        _openPack(
-            randomness,
-            requestId,
-            _purchaseOrders[requestId].buyer,
-            _purchaseOrders[requestId].collectionId
-        );
+        _purchaseOrders[purchaseOrderId].signature = randomness;
+        emit PurchaseOrderSigned(purchaseOrderId);
     }
 }

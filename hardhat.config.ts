@@ -28,7 +28,7 @@ task("vrf-callback", "Mocks a VRF callback")
         args.request,
         parseInt(args.randomness),
         args.tokenpack,
-        { gasLimit: 200000 }
+        { gasLimit: 230000 }
       );
 
     console.log("Transaction:", await vrfTx.wait());
