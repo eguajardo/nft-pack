@@ -41,19 +41,19 @@ function CollectionCard(props) {
       props.collectionId,
       null
     );
-    let requestId;
+    let vrfRequestId;
     const logs = await library.getLogs(filter);
     logs.forEach((log) => {
-      requestId = tokenPackContract.interface.parseLog(log).args[2];
-      console.log("requestId:", requestId);
-      setRequestId(requestId);
+      vrfRequestId = tokenPackContract.interface.parseLog(log).args[2];
+      console.log("requestId:", vrfRequestId);
+      setRequestId(vrfRequestId);
       setPackOpened(false);
     });
   }, [account, props.collectionId, library, tokenPackContract]);
 
   const openPack = useCallback(async () => {
     if (!packOpened) {
-      const filter = tokenPackContract.filters.PackOpened(requestId, account);
+      const filter = tokenPackContract.filters.PurchaseOrderSigned(requestId);
       const logs = await library.getLogs(filter);
 
       console.log("block", block);
@@ -72,7 +72,6 @@ function CollectionCard(props) {
   }, [
     block,
     requestId,
-    account,
     library,
     tokenPackContract,
     packOpened,

@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0xb830887eE23d3f9Ed8c27dbF7DcFe63037765475",
+    "address": "0x89372b32b8AF3F1272e2efb3088616318D2834cA",
     "abi": [
       {
         "inputs": [
@@ -259,6 +259,25 @@ export const contracts = {
         "inputs": [
           {
             "internalType": "bytes32",
+            "name": "purchaseOrderId",
+            "type": "bytes32"
+          }
+        ],
+        "name": "purchaseOrderTokens",
+        "outputs": [
+          {
+            "internalType": "uint256[]",
+            "name": "",
+            "type": "uint256[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
             "name": "requestId",
             "type": "bytes32"
           },
@@ -343,7 +362,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0x5401d7362F426a4BC700f1284FFBa6C409A1F18e",
+    "address": "0x6Ee395bed6F93791aCe372E756670905bdF87924",
     "abi": [
       {
         "inputs": [
@@ -783,7 +802,13 @@ export const contracts = {
           }
         ],
         "name": "mintFromPack",
-        "outputs": [],
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
         "stateMutability": "nonpayable",
         "type": "function"
       },
@@ -1057,7 +1082,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x0AC9654311e9DE076577eA1C0c263cE5161667AE",
+    "address": "0x5398B68630997a8f0f01d6FdBC060D65AbCe7AA0",
     "abi": [
       {
         "anonymous": false,

@@ -20,15 +20,15 @@ function CollectionIndex() {
 
   const showPackContent = useCallback(
     async (requestId) => {
-      const tokenContract = new Contract(
-        contracts.Token.address,
-        new utils.Interface(contracts.Token.abi)
+      const tokenPackContract = new ethers.Contract(
+        contracts.TokenPack.address,
+        contracts.TokenPack.abi,
+        library
       );
 
-      const filter = tokenContract.filters.Minted(null, null, requestId);
-      const logs = await library.getLogs(filter);
+      const mintedTokens = await tokenPackContract.purchaseOrderTokens(requestId);
 
-      console.log("pack content:", logs);
+      console.log("pack content:", mintedTokens);
 
       window.$("#packContent").modal("show");
     },
@@ -72,13 +72,6 @@ function CollectionIndex() {
   return (
     <div className="container content-container">
       <div className="card-deck d-flex justify-content-center">{content}</div>
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={showPackContent}
-      >
-        Launch demo modal
-      </button>
 
       <div
         className="modal fade"

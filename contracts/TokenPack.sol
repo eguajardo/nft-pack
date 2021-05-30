@@ -31,6 +31,7 @@ contract TokenPack is Context, VRFConsumerBase {
     struct PurchaseOrder {
         address buyer;
         uint256 collectionId;
+        uint256[] mintedTokens;
         uint256 signature;      // random number coming from Chainlink
     }
 
@@ -154,18 +155,20 @@ contract TokenPack is Context, VRFConsumerBase {
         // callback function will be fulfillRandomness (see Chainlink VRF documentation)
         bytes32 purchaseOrderId = _requestRandomTokens(seed);
 
-        _purchaseOrders[purchaseOrderId] = PurchaseOrder(
-            _msgSender(), collectionId, 0
-        );
-
         TokenCollection storage collection = _tokenCollections[collectionId];
+        uint256[] memory mintedTokens = new uint256[](collection.capacity);
         for (uint256 i = 0; i < collection.capacity; i++) {
-            tokenContract.mintFromPack(
+            uint256 tokenId = tokenContract.mintFromPack(
                 _msgSender(), 
                 purchaseOrderId,
                 i
             );
+            mintedTokens[i] = tokenId;
         }
+
+        _purchaseOrders[purchaseOrderId] = PurchaseOrder(
+            _msgSender(), collectionId, mintedTokens, 0
+        );
 
         emit PurchaseOrdered(_msgSender(), collectionId, purchaseOrderId);
         return purchaseOrderId;
@@ -193,9 +196,20 @@ contract TokenPack is Context, VRFConsumerBase {
     }
 
     /**
+     * @notice Retrieves the token ids of the minted tokens by this purchase order
+     * @param purchaseOrderId The purchase order ID
+     * @return an array containing the minted tokens
+     */
+    function purchaseOrderTokens(bytes32 purchaseOrderId) external view returns (uint256[] memory) {
+        require(_purchaseOrders[purchaseOrderId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
+        return _purchaseOrders[purchaseOrderId].mintedTokens;
+    }
+
+    /**
      * @notice Gets the ID of the blueprint for the minted token from the purchase order and token index
      * @param purchaseOrderId The purchase order ID that minted the token
      * @param index The index of the minted token in the pack purchased
+     * @return the blueprint id
      */
     function mintedBlueprint(bytes32 purchaseOrderId, uint256 index) external view returns (uint256) {
         require(_purchaseOrders[purchaseOrderId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");

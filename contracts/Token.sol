@@ -62,7 +62,11 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
      * @param purchaseOrderId The purchase order used to mint this Token
      * @param index The position in the opened pack containing this Token
      */
-    function mintFromPack(address to, bytes32 purchaseOrderId, uint256 index) public virtual {
+    function mintFromPack(
+            address to, 
+            bytes32 purchaseOrderId, 
+            uint256 index
+    ) public virtual returns (uint256) {
         require (hasRole(MINTER_ROLE, _msgSender()), "ERROR_UNAUTHORIZED_MINTER");
 
         uint256 tokenId = totalSupply();
@@ -71,6 +75,7 @@ contract Token is ERC721Enumerable, AccessControlEnumerable {
         _mintData[tokenId].index = index;
 
         emit Minted(tokenId, to, purchaseOrderId);
+        return tokenId;
     }
 
     /**
