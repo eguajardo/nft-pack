@@ -12,7 +12,7 @@ function NFTIndex() {
   const [selectedBlueprints, setSelectedBlueprints] = useState([]);
   const [collectionCreation, setCollectionCreation] = useState(false);
 
-  let [totalBlueprints] =
+  const [totalBlueprintsBigNumber] =
     useContractCall({
       abi: new utils.Interface(contracts.Blueprint.abi),
       address: contracts.Blueprint.address,
@@ -20,21 +20,22 @@ function NFTIndex() {
       args: [],
     }) ?? [];
 
-  const setSelected = useCallback(
-    (blueprintId, selected) => {
-      let newArray = [];
-      if (selected) {
-        setSelectedBlueprints((arr) => [...arr, blueprintId]);
-      } else {
-        newArray = selectedBlueprints.filter((value, index, arr) => {
-          return value !== blueprintId;
-        });
+  const totalBlueprints = totalBlueprintsBigNumber
+    ? totalBlueprintsBigNumber.toNumber()
+    : undefined;
 
-        setSelectedBlueprints((arr) => [...newArray]);
-      }
-    },
-    [selectedBlueprints]
-  );
+  const setSelected = (blueprintId, selected) => {
+    let newArray = [];
+    if (selected) {
+      setSelectedBlueprints((arr) => [...arr, blueprintId]);
+    } else {
+      newArray = selectedBlueprints.filter((value, index, arr) => {
+        return value !== blueprintId;
+      });
+
+      setSelectedBlueprints((arr) => [...newArray]);
+    }
+  };
 
   const loadContent = useCallback(async () => {
     if (totalBlueprints) {
@@ -60,7 +61,7 @@ function NFTIndex() {
 
       setContent(cardsDeck);
     }
-  }, [totalBlueprints, library, setSelected]);
+  }, [totalBlueprints, library]);
 
   const openCollectionForm = () => {
     setCollectionCreation(true);
@@ -103,7 +104,10 @@ function NFTIndex() {
         <div className="col-4">
           <div className="mb-5"></div>
           <div className="content-container">
-            <CollectionForm selectedBlueprints={selectedBlueprints} closeCollectionForm={closeCollectionForm} />
+            <CollectionForm
+              selectedBlueprints={selectedBlueprints}
+              closeCollectionForm={closeCollectionForm}
+            />
           </div>
         </div>
       )}

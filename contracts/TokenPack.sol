@@ -226,6 +226,16 @@ contract TokenPack is Context, VRFConsumerBase {
         return _tokenCollections[collectionId].blueprints[blueprintIndex];
     }
 
+    /**
+     * @notice Gets the purchase order signature
+     * @param purchaseOrderId The purchase order
+     */
+    function purchaseOrderSignature(bytes32 purchaseOrderId) external view returns (uint256) {
+        require (_purchaseOrders[purchaseOrderId].buyer != address(0), "ERROR_INVALID_PURCHASE_ORDER");
+
+        return _purchaseOrders[purchaseOrderId].signature;
+    }
+
     function exist(uint256 collectionId) public view returns (bool) {
         return Utils.isNotEmptyString(_tokenCollections[collectionId].ipfsPath);
     }

@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0x89372b32b8AF3F1272e2efb3088616318D2834cA",
+    "address": "0xa94766d3a82BbD0D273e5F1e08ECC92212e5E42e",
     "abi": [
       {
         "inputs": [
@@ -263,6 +263,25 @@ export const contracts = {
             "type": "bytes32"
           }
         ],
+        "name": "purchaseOrderSignature",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "purchaseOrderId",
+            "type": "bytes32"
+          }
+        ],
         "name": "purchaseOrderTokens",
         "outputs": [
           {
@@ -362,7 +381,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0x6Ee395bed6F93791aCe372E756670905bdF87924",
+    "address": "0xdd0861c329069e5D67AF4C1212e420E47807Afd0",
     "abi": [
       {
         "inputs": [
@@ -1082,7 +1101,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x5398B68630997a8f0f01d6FdBC060D65AbCe7AA0",
+    "address": "0x774E3549f26c54F41E3C57Cc6558a9cA17435eC2",
     "abi": [
       {
         "anonymous": false,

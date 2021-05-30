@@ -6,14 +6,25 @@ import reportWebVitals from "./reportWebVitals";
 import { ChainId, DAppProvider } from "@usedapp/core";
 import { BrowserRouter } from "react-router-dom";
 
+// const config = {
+//   readOnlyChainId: 31337,
+//   readOnlyUrls: {
+//     [ChainId.Hardhat]: "http://127.0.0.1:8545",
+//   },
+//   supportedChains: [31337],
+//   multicallAddresses: {
+//     31337: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+//   },
+// };
+
 const config = {
-  readOnlyChainId: 31337,
+  readOnlyChainId: 80001,
   readOnlyUrls: {
-    [ChainId.Hardhat]: "http://127.0.0.1:8545",
+    80001: "https://rpc-mumbai.maticvigil.com",
   },
-  supportedChains: [31337],
+  supportedChains: [80001],
   multicallAddresses: {
-    31337: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+    80001: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
   },
 };
 

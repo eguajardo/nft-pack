@@ -1,7 +1,6 @@
 import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
-import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../../utils/contracts-utils";
-import { utils } from "ethers";
+import { ethers } from "ethers";
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
 
@@ -9,13 +8,7 @@ function CollectionCard(props) {
   const [metadata, setMetadata] = useState({});
   const [requestId, setRequestId] = useState();
   const [packOpened, setPackOpened] = useState(false);
-  const [tokenPackContract] = useState(
-    new Contract(
-      contracts.TokenPack.address,
-      new utils.Interface(contracts.TokenPack.abi)
-    )
-  );
-  const { library, account } = useEthers();
+  const { account, library } = useEthers();
   const block = useBlockNumber();
 
   const [buttonState, setButtonState] = useState({
@@ -23,6 +16,12 @@ function CollectionCard(props) {
     disabled: false,
     text: "Buy",
   });
+
+  const tokenPackContract = new ethers.Contract(
+    contracts.TokenPack.address,
+    contracts.TokenPack.abi,
+    library
+  );
 
   const { state: ethTxState, send: sendBuyPack } = useContractFunction(
     tokenPackContract,
@@ -35,31 +34,36 @@ function CollectionCard(props) {
     setMetadata(json);
   }, [props.uri]);
 
-  const loadRequestId = useCallback(async () => {
-    const filter = tokenPackContract.filters.PurchaseOrdered(
-      account,
-      props.collectionId,
-      null
-    );
-    let vrfRequestId;
-    const logs = await library.getLogs(filter);
-    logs.forEach((log) => {
-      vrfRequestId = tokenPackContract.interface.parseLog(log).args[2];
-      console.log("requestId:", vrfRequestId);
-      setRequestId(vrfRequestId);
-      setPackOpened(false);
-    });
-  }, [account, props.collectionId, library, tokenPackContract]);
+  const loadRequestId = useCallback(
+    async (receipt) => {
+      const filter = tokenPackContract.filters.PurchaseOrdered(
+        account,
+        props.collectionId,
+        null
+      );
+
+      console.log("filter", filter);
+      const logs = receipt.logs.filter((log) => {
+        return log.topics[0] === filter.topics[0];
+      });
+      const vrfRequestId = tokenPackContract.interface.parseLog(logs[0])
+        .args[2];
+      if (vrfRequestId) {
+        console.log("requestId:", vrfRequestId);
+        setRequestId(vrfRequestId);
+        setPackOpened(false);
+      }
+    },
+    [account, props.collectionId]
+  );
 
   const openPack = useCallback(async () => {
-    if (!packOpened) {
-      const filter = tokenPackContract.filters.PurchaseOrderSigned(requestId);
-      const logs = await library.getLogs(filter);
+    if (!packOpened && requestId) {
+      const signature = await tokenPackContract.purchaseOrderSignature(
+        requestId
+      );
 
-      console.log("block", block);
-      console.log("openPack logs:", logs);
-
-      if (logs.length > 0) {
+      if (signature) {
         setButtonState({
           class: "btn btn-primary btn-lg btn-block mt-2",
           disabled: false,
@@ -69,24 +73,19 @@ function CollectionCard(props) {
         props.showPackContent(requestId);
       }
     }
-  }, [
-    block,
-    requestId,
-    library,
-    tokenPackContract,
-    packOpened,
-    props,
-  ]);
+  }, [requestId, packOpened, props]);
 
   useEffect(() => {
+    console.log("ethState:", ethTxState);
+
     if (ethTxState.status === "Success") {
+      loadRequestId(ethTxState.receipt);
+
       setButtonState({
         class: "btn btn-primary btn-lg btn-block mt-2",
         disabled: true,
         text: "Opening pack...",
       });
-
-      loadRequestId();
     } else if (
       ethTxState.status === "Exception" ||
       ethTxState.status === "Fail"
@@ -107,7 +106,7 @@ function CollectionCard(props) {
 
   useEffect(() => {
     openPack();
-  }, [openPack]);
+  }, [openPack, block]);
 
   useEffect(() => {
     loadMetadata();

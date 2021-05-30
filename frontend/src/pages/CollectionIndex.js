@@ -1,6 +1,5 @@
 import CollectionCard from "../components/UI/CollectionCard";
 import { contracts } from "../utils/contracts-utils";
-import { Contract } from "@ethersproject/contracts";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
@@ -10,13 +9,17 @@ function CollectionIndex() {
   const [content, setContent] = useState([]);
   const [packContent, setPackContent] = useState();
 
-  let [totalCollections] =
+  const [totalCollectionsBigNumber] =
     useContractCall({
       abi: new utils.Interface(contracts.TokenPack.abi),
       address: contracts.TokenPack.address,
       method: "totalCollections",
       args: [],
     }) ?? [];
+
+  const totalCollections = totalCollectionsBigNumber
+    ? totalCollectionsBigNumber.toNumber()
+    : undefined;
 
   const showPackContent = useCallback(
     async (requestId) => {
@@ -26,7 +29,9 @@ function CollectionIndex() {
         library
       );
 
-      const mintedTokens = await tokenPackContract.purchaseOrderTokens(requestId);
+      const mintedTokens = await tokenPackContract.purchaseOrderTokens(
+        requestId
+      );
 
       console.log("pack content:", mintedTokens);
 
@@ -46,8 +51,6 @@ function CollectionIndex() {
       let cardsDeck = [];
       for (let i = totalCollections - 1; i >= 0; i--) {
         const tokenCollection = await tokenPackContract.tokenCollection(i);
-
-        console.log("tokenCollection:", tokenCollection);
 
         cardsDeck.push(
           <CollectionCard
