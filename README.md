@@ -25,14 +25,18 @@ DApp to create and buy NFTs booster packs.  Made with useDApp for building the p
 
 Smart contracts deployed to Polygon's Mumbai testnet:
 
-TokenPack contract Address: 0xb5d79FA12a4BC71c0a48E8784D2FC8b5B4172Dd0
+TokenPack contract Address: 0xcE0378D09Cfe190Bd4220Ed1329669a1704fF958
 
-Token contract address: 0x39aC18F547ce1bdA85F417247e12935299842e5f
+Token contract address: 0xf46A949f10eCb8bBd42c8cCd33399727bD1ACb71
 
-Blueprint contract address: 0xc9546c96a69da6A28902B3A9C92896dF62FCEB2a
+Blueprint contract address: 0x0C0BF23c57140A208c6aDE71CD59d519C0eEC433
 
-## Vide Demo
+## Demo
 
+Live working demo: 
+https://nft-pack.vercel.app/boosters
+
+Vide Demo: 
 https://youtu.be/d_ibhxWMgI8
 
 ## Run localy
@@ -97,5 +101,4 @@ replace
 -- randomness : the random number to send to the consumer (TokenPack contract)
 
 ## Pending stuff for the future
-- fix useDapp dependencies when the pull request is merged or an alternative solution is provided
 - refactor code, there is a lot of shitty and duplicated code that can be improved because I was in a hurry and in learning process
