@@ -23,6 +23,14 @@ https://gitcoin.co/issue/smartcontractkit/chainlink/4375/100025683
 
 DApp to create and buy NFTs booster packs.  Made with useDApp for building the platform, Chainlink to get a random number used for deciding the content of the pack and deployed to Polygon's Mumbai testnetwork
 
+Smart contracts deployed to Polygon's Mumbai testnet:
+
+TokenPack contract Address: 0xb5d79FA12a4BC71c0a48E8784D2FC8b5B4172Dd0
+
+Token contract address: 0x39aC18F547ce1bdA85F417247e12935299842e5f
+
+Blueprint contract address: 0xc9546c96a69da6A28902B3A9C92896dF62FCEB2a
+
 ## Vide Demo
 
 https://youtu.be/d_ibhxWMgI8
