@@ -37,10 +37,7 @@ https://youtu.be/d_ibhxWMgI8
 
 ## Run localy
 
-## **Important** Due to a bug in useDApp, I had to manually fix it in a fork and created the pull request https://github.com/EthWorks/useDApp/pull/254. However this means that the front end won't build unless the the pull request is cloned in a folder named "useDApp-fork" in the side of this main repository. See the frontend/package.json for more details. It has to be done this way because I couldn't figure out a way to install from a subdirectory in a git repo
-
-
-After cloning the pull request as mentioned above, we install dependencies
+First we install the dependencies
 ```
 yarn
 ```
@@ -61,11 +58,26 @@ npx hardhat run scripts/deploy.ts --network localhost
 ```
 
 ### Terminal 3: Frontend
+First make sure the frontend/src/index/js is pointing to the correct chain and URL
+
+```
+const config = {
+  readOnlyChainId: ChainId.Hardhat,
+  readOnlyUrls: {
+    [ChainId.Hardhat]: "http://127.0.0.1:8545",
+  },
+  supportedChains: [[ChainId.Hardhat]],
+  multicallAddresses: {
+    [ChainId.Hardhat]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+  },
+};
+```
+
 To run the local server to serve the react application, run the following commands
 ```
 # Navigate to frontend app
 cd frontend
-npm start
+yarn start
 ```
 
 ### Mocking VRFCoordinator locally
