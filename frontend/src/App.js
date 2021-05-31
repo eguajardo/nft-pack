@@ -1,5 +1,5 @@
 import './App.css';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 
 import NFTIndex from './pages/NFTIndex'
 import NFTNew from './pages/NFTNew';
@@ -20,6 +20,9 @@ function App() {
         </Route>
         <Route path="/boosters">
           <CollectionIndex />
+        </Route>
+        <Route path="/">
+          <Redirect to="/boosters" />
         </Route>
       </Switch>
     </div>

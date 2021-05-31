@@ -8,7 +8,8 @@ function CollectionCard(props) {
   const [metadata, setMetadata] = useState({});
   const [requestId, setRequestId] = useState();
   const [packOpened, setPackOpened] = useState(false);
-  const { account, library } = useEthers();
+  const [walletError, setWalletError] = useState(false);
+  const { activateBrowserWallet, account, library } = useEthers();
   const block = useBlockNumber();
 
   const [buttonState, setButtonState] = useState({
@@ -59,6 +60,7 @@ function CollectionCard(props) {
 
   const openPack = useCallback(async () => {
     if (!packOpened && requestId) {
+      console.log("purchaseOrder:", requestId);
       const signature = await tokenPackContract.purchaseOrderSignature(
         requestId
       );
@@ -112,8 +114,36 @@ function CollectionCard(props) {
     loadMetadata();
   }, [loadMetadata]);
 
-  const buyPack = () => {
-    sendBuyPack(props.collectionId, {value: utils.parseEther(props.price)});
+  const buyPack = async () => {
+    if (!account) {
+      try {
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block mt-2",
+          disabled: true,
+          text: "Connecting...",
+        });
+        await activateBrowserWallet(null, true);
+      } catch (error) {
+        console.log(error);
+        setWalletError(true);
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block mt-2",
+          disabled: false,
+          text: "Buy",
+        });
+        return;
+      }
+    }
+
+    if(walletError) {
+      setButtonState({
+        class: "btn btn-primary btn-lg btn-block mt-2",
+        disabled: true,
+        text: "Processing...",
+      });
+      setWalletError(false);
+    }
+    sendBuyPack(props.collectionId, { value: utils.parseEther(props.price) });
   };
 
   return (
@@ -156,6 +186,11 @@ function CollectionCard(props) {
             <div className="alert alert-danger">
               <strong>Error executing transaction</strong>
               <p>{ethTxState.errorMessage}</p>
+            </div>
+          )}
+          {walletError && (
+            <div className="alert alert-danger">
+              <strong>Error connecting to wallet</strong>
             </div>
           )}
           <button

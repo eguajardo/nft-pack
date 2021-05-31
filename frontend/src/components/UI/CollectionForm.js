@@ -3,7 +3,7 @@ import { uploadFileToIPFS, uploadJsonToIPFS } from "../../utils/ipfs-utils";
 import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../../utils/contracts-utils";
 import { utils } from "ethers";
-import { useContractFunction } from "@usedapp/core";
+import { useContractFunction, useEthers } from "@usedapp/core";
 
 function CollectionForm(props) {
   const nameInputRef = useRef();
@@ -11,6 +11,8 @@ function CollectionForm(props) {
   const priceInputRef = useRef();
   const capacityInputRef = useRef();
   const fileInputRef = useRef();
+  const [walletError, setWalletError] = useState(false);
+  const { activateBrowserWallet, account } = useEthers();
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
@@ -112,6 +114,30 @@ function CollectionForm(props) {
 
     if (error) {
       return;
+    }
+
+    if (!account) {
+      try {
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block",
+          disabled: true,
+          text: "Connecting...",
+        });
+        await activateBrowserWallet(null, true);
+      } catch (error) {
+        console.log(error);
+        setWalletError(true);
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block",
+          disabled: false,
+          text: "Submit collection",
+        });
+        return;
+      }
+    }
+
+    if (walletError) {
+      setWalletError(false);
     }
 
     setButtonState({
@@ -235,6 +261,11 @@ function CollectionForm(props) {
             <div className="alert alert-danger">
               <strong>Error executing transaction</strong>
               <p>{ethTxState.errorMessage}</p>
+            </div>
+          )}
+          {walletError && (
+            <div className="alert alert-danger">
+              <strong>Error connecting to wallet</strong>
             </div>
           )}
           <button

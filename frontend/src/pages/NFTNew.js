@@ -3,12 +3,14 @@ import { uploadFileToIPFS, uploadJsonToIPFS } from "../utils/ipfs-utils";
 import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../utils/contracts-utils";
 import { utils } from "ethers";
-import { useContractFunction } from "@usedapp/core";
+import { useContractFunction, useEthers } from "@usedapp/core";
 
 function NFTNew() {
   const titleInputRef = useRef();
   const descriptionInputRef = useRef();
   const fileInputRef = useRef();
+  const [walletError, setWalletError] = useState(false);
+  const { activateBrowserWallet, account } = useEthers();
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
@@ -94,6 +96,32 @@ function NFTNew() {
       return;
     }
 
+    if (!account) {
+      try {
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block",
+          disabled: true,
+          text: "Connecting...",
+          status: ethTxState.status,
+        });
+        await activateBrowserWallet(null, true);
+      } catch (error) {
+        console.log(error);
+        setWalletError(true);
+        setButtonState({
+          class: "btn btn-primary btn-lg btn-block",
+          disabled: false,
+          text: "Submit NFT blueprint",
+          status: ethTxState.status,
+        });
+        return;
+      }
+    }
+
+    if (walletError) {
+      setWalletError(false);
+    }
+
     setButtonState({
       class: "btn btn-primary btn-lg btn-block",
       disabled: true,
@@ -175,6 +203,11 @@ function NFTNew() {
             <div className="alert alert-danger">
               <strong>Error executing transaction</strong>
               <p>{ethTxState.errorMessage}</p>
+            </div>
+          )}
+          {walletError && (
+            <div className="alert alert-danger">
+              <strong>Error connecting to wallet</strong>
             </div>
           )}
           <button
