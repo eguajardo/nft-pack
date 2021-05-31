@@ -205,7 +205,7 @@ function CollectionForm(props) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="price">Price</label>
+          <label htmlFor="price">Price per pack</label>
           <input
             ref={priceInputRef}
             type="number"

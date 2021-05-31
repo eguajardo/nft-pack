@@ -1,6 +1,6 @@
 import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
 import { contracts } from "../../utils/contracts-utils";
-import { ethers, utils } from "ethers";
+import { ethers, utils, BigNumber } from "ethers";
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
 
@@ -65,7 +65,7 @@ function CollectionCard(props) {
         requestId
       );
 
-      if (signature && signature.toNumber() !== 0) {
+      if (signature && !signature.isZero()) {
         setButtonState({
           class: "btn btn-primary btn-lg btn-block mt-2",
           disabled: false,
