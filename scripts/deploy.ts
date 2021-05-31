@@ -1,5 +1,17 @@
 import { Contract, ContractFactory } from "@ethersproject/contracts";
 import { artifacts, ethers, network } from "hardhat";
+import { utils } from "ethers";
+
+const TEST_BLUEPRINT_IPFS = [
+  "QmcTz5jMgzGuGwndaVsfhw6DKqaFskNinn1gV7hnE7b61k",
+  "Qmdqd4PkyJ2dm2U5djUtB1tGJ7d24YTfXQVheTUSS671MD",
+  "QmY2K9H7hxYEJ6HBzDP4cgFmp8enkUF6zDkSsGo6L4rqd7",
+  "QmdgvwwA1C3z4tXGDoBvE1oXzYTUJqH6aWaEiVQ25ETZvQ",
+  "QmQeZERvXj3PRp92bzAsWWPnEPkumzTB7rfsttfkY7vZY1",
+  "QmYJQri346w2g5yJWX6CnmMC7N4sNAPvdo5p3ewrjq1hrz",
+];
+
+const TEST_COLLECTION_IPFS = "QmVPKgDvjWWHQSJGYdnsziEb3H4C9PwcWmsW1gz1zAvSXA";
 
 async function main() {
   console.log("Deploying to network:", network.name);
@@ -68,9 +80,7 @@ async function main() {
     await token.blueprintContractAddress()
   );
 
-  if (network.name === "hardhat" || network.name === "localhost") {
-    await loadTestBlueprints(blueprint);
-  }
+  await loadTestData(blueprint, tokenPack);
 
   console.log("VRFCoordinator contract address:", vrfCoordinatorAddress);
   console.log("Utils contract address:", utils.address);
@@ -107,15 +117,20 @@ async function mockMulticall() {
   return multicall.address;
 }
 
-async function loadTestBlueprints(blueprint: Contract) {
+async function loadTestData(blueprint: Contract, tokenPack: Contract) {
   const signers = await ethers.getSigners();
 
-  for (let i = 0; i < 10; i++) {
-    await blueprint.createBlueprint(
-      "QmX2V4MpeSmkBQ6UormESbxgi1kXyCqTeLRdusx2raWLvH"
-    );
+  for (let i = 0; i < TEST_BLUEPRINT_IPFS.length; i++) {
+    await blueprint.createBlueprint(TEST_BLUEPRINT_IPFS[i]);
     console.log("Created test blueprint", i, signers[0].address);
   }
+
+  await tokenPack.createTokenCollection(
+    TEST_COLLECTION_IPFS,
+    utils.parseEther("0.01"),
+    1,
+    [0, 1, 2, 3, 4, 5]
+  );
 }
 
 function saveFrontEndFiles(contractsId: { name: string; address: string }[]) {

@@ -135,7 +135,7 @@ function CollectionCard(props) {
       }
     }
 
-    if(walletError) {
+    if (walletError) {
       setButtonState({
         class: "btn btn-primary btn-lg btn-block mt-2",
         disabled: true,
@@ -147,62 +147,68 @@ function CollectionCard(props) {
   };
 
   return (
-    <div className="card">
-      {metadata.image && (
-        <img
-          className="card-img-top"
-          alt={metadata.name}
-          src={ipfsPathToURL(metadata.image)}
-        />
-      )}
-      <div className="card-body">
-        {metadata.name && (
-          <div>
-            <div className="mt-2 font-weight-bold">{"Name:"}</div>
-            <div>{metadata.name}</div>
-          </div>
-        )}
-
-        {metadata.description && (
-          <div>
-            <div className="font-weight-bold">{"Description:"}</div>
-            <div>{metadata.description}</div>
-          </div>
-        )}
-
-        <div>
-          <div className="font-weight-bold">{"Content:"}</div>
-          <div>{props.capacity} random NFTs</div>
+    <div className="card card-lg">
+      <div className="row">
+        <div className="col-6">
+          {metadata.image && (
+            <img
+              className="card-image"
+              alt={metadata.name}
+              src={ipfsPathToURL(metadata.image)}
+            />
+          )}
         </div>
-
-        <div>
-          <div className="font-weight-bold">{"Price:"}</div>
-          <div>{props.price} MATIC</div>
-        </div>
-
-        <div id="actions" className="mt-4">
-          {(ethTxState.status === "Exception" ||
-            ethTxState.status === "Fail") && (
-            <div className="alert alert-danger">
-              <strong>Error executing transaction</strong>
-              <p>{ethTxState.errorMessage}</p>
+        <div className="col-6">
+          {metadata.name && (
+            <div>
+              <div className="mt-2 font-weight-bold">{"Name:"}</div>
+              <div>{metadata.name}</div>
             </div>
           )}
-          {walletError && (
-            <div className="alert alert-danger">
-              <strong>Error connecting to wallet</strong>
+
+          {metadata.description && (
+            <div>
+              <div className="font-weight-bold">{"Description:"}</div>
+              <div>{metadata.description}</div>
             </div>
           )}
-          <button
-            onClick={buyPack}
-            name="submit"
-            className={buttonState.class}
-            disabled={buttonState.disabled}
-          >
-            {buttonState.text}
-          </button>
+
+          <div>
+            <div className="font-weight-bold">{"Content:"}</div>
+            <div>{props.capacity} random NFTs</div>
+          </div>
+
+          <div>
+            <div className="font-weight-bold">{"Price:"}</div>
+            <div>{props.price} MATIC</div>
+          </div>
+
+          <div id="actions" className="mt-4 mr-4 mb-4">
+            {(ethTxState.status === "Exception" ||
+              ethTxState.status === "Fail") && (
+              <div className="alert alert-danger">
+                <strong>Error executing transaction</strong>
+                <p>{ethTxState.errorMessage}</p>
+              </div>
+            )}
+            {walletError && (
+              <div className="alert alert-danger">
+                <strong>Error connecting to wallet</strong>
+              </div>
+            )}
+            <button
+              onClick={buyPack}
+              name="submit"
+              className={buttonState.class}
+              disabled={buttonState.disabled}
+            >
+              {buttonState.text}
+            </button>
+          </div>
         </div>
       </div>
+
+      <div className=""></div>
     </div>
   );
 }

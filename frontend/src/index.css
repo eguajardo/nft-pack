@@ -79,3 +79,11 @@ a, #new-link, #browse-link {
   color: inherit;
   text-decoration: none;
 }
+
+.card-lg {
+  max-width: 450px !important;
+}
+
+.card-image {
+  max-width: 200px;
+}
