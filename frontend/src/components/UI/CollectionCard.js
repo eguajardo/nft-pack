@@ -1,6 +1,6 @@
 import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
 import { contracts } from "../../utils/contracts-utils";
-import { ethers, utils, BigNumber } from "ethers";
+import { ethers, utils } from "ethers";
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
 
