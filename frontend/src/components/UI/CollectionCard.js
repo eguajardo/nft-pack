@@ -1,6 +1,6 @@
 import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
 import { contracts } from "../../utils/contracts-utils";
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
 
@@ -113,7 +113,7 @@ function CollectionCard(props) {
   }, [loadMetadata]);
 
   const buyPack = () => {
-    sendBuyPack(props.collectionId);
+    sendBuyPack(props.collectionId, {value: utils.parseEther(props.price)});
   };
 
   return (

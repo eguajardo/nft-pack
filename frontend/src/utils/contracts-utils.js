@@ -1,6 +1,6 @@
 export const contracts = {
   "TokenPack": {
-    "address": "0xE7FF84Df24A9a252B6E8A5BB093aC52B1d8bEEdf",
+    "address": "0x12456Fa31e57F91B70629c1196337074c966492a",
     "abi": [
       {
         "inputs": [
@@ -156,7 +156,7 @@ export const contracts = {
             "type": "bytes32"
           }
         ],
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
         "type": "function"
       },
       {
@@ -342,6 +342,11 @@ export const contracts = {
                 "internalType": "uint256[]",
                 "name": "blueprints",
                 "type": "uint256[]"
+              },
+              {
+                "internalType": "address",
+                "name": "distributor",
+                "type": "address"
               }
             ],
             "internalType": "struct TokenPack.TokenCollection",
@@ -381,7 +386,7 @@ export const contracts = {
     ]
   },
   "Token": {
-    "address": "0x2597fCA6387845393E35D1437F1DD9aB09A6c60b",
+    "address": "0x2f79D7FB2cb96Ad3b556C40e01E34456F46b3D59",
     "abi": [
       {
         "inputs": [
@@ -1101,7 +1106,7 @@ export const contracts = {
     ]
   },
   "Blueprint": {
-    "address": "0x2f4947cD47384C693f3Df7Ced24122E0C59933FB",
+    "address": "0x8d65b34FFb03d8e7bbEed7AfdB4Ad0Ca1eEa366d",
     "abi": [
       {
         "anonymous": false,

@@ -176,6 +176,7 @@ describe("TokenPack contract", () => {
       await blueprintGenerator(10)
     );
 
+    // second collection
     await tokenPack.createTokenCollection(
       IPFS_PATH,
       PRICE,
@@ -184,8 +185,8 @@ describe("TokenPack contract", () => {
     );
 
     // Non state changing call just to preview the requestId
-    const requestId = await tokenPack.callStatic.buyPack(1);
-    const tx: TransactionResponse = await tokenPack.buyPack(1);
+    const requestId = await tokenPack.callStatic.buyPack(1, {value: 1});
+    const tx: TransactionResponse = await tokenPack.buyPack(1,{value: 1});
 
     await expect(tx)
       .to.emit(tokenPack, "PurchaseOrdered")
@@ -204,8 +205,8 @@ describe("TokenPack contract", () => {
       .withArgs(requestId);
 
     // Second pucase
-    const requestId2 = await tokenPack.callStatic.buyPack(1);
-    const tx2: TransactionResponse = await tokenPack.buyPack(1);
+    const requestId2 = await tokenPack.callStatic.buyPack(1, {value: 1});
+    const tx2: TransactionResponse = await tokenPack.buyPack(1, {value: 1});
 
     await expect(tx2)
       .to.emit(tokenPack, "PurchaseOrdered")
@@ -225,6 +226,34 @@ describe("TokenPack contract", () => {
 
     const uri: string = await token.tokenURI(0);
     expect(uri).to.equals("ipfs://IPFS_PATH_3");
+  });
+
+  it("Fails purchase without amount", async () => {
+    await tokenPack.createTokenCollection(
+      IPFS_PATH,
+      PRICE,
+      CAPACITY,
+      await blueprintGenerator(10)
+    );
+
+    await expect(tokenPack.buyPack(0)).to.be.revertedWith(
+      "ERROR_INVALID_AMOUNT"
+    );
+
+  });
+
+  it("Fails purchase with invalid amount", async () => {
+    await tokenPack.createTokenCollection(
+      IPFS_PATH,
+      PRICE,
+      CAPACITY,
+      await blueprintGenerator(10)
+    );
+
+    await expect(tokenPack.buyPack(0, {value: 2})).to.be.revertedWith(
+      "ERROR_INVALID_AMOUNT"
+    );
+
   });
 
   it("Fails buying invalid collection", async () => {

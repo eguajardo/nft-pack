@@ -23,6 +23,7 @@ contract TokenPack is Context, VRFConsumerBase {
         uint256 price;
         uint8 capacity;
         uint256[] blueprints;
+        address distributor; // creator of the collection
     }
 
     /**
@@ -134,6 +135,7 @@ contract TokenPack is Context, VRFConsumerBase {
         collection.price = price;
         collection.capacity = capacity;
         collection.blueprints = blueprints;
+        collection.distributor = _msgSender();
 
         _distributorCollections[_msgSender()].push(collectionId);        
 
@@ -145,17 +147,15 @@ contract TokenPack is Context, VRFConsumerBase {
      * @notice Buys a pack of Tokens as defined in the collection
      * @param collectionId The collection ID to which the pack belongs
      */
-    function buyPack(uint256 collectionId) public returns (bytes32) {
-        // TODO: price and token transfer
-        // TODO: income amount split
-
+    function buyPack(uint256 collectionId) payable public returns (bytes32) {
         require(exist(collectionId), "ERROR_INVALID_COLLECTION_ID");
+        TokenCollection storage collection = _tokenCollections[collectionId];
+        require(msg.value == collection.price, "ERROR_INVALID_AMOUNT");
 
         uint256 seed = uint(keccak256(abi.encodePacked(_msgSender())));
         // callback function will be fulfillRandomness (see Chainlink VRF documentation)
         bytes32 purchaseOrderId = _requestRandomTokens(seed);
 
-        TokenCollection storage collection = _tokenCollections[collectionId];
         uint256[] memory mintedTokens = new uint256[](collection.capacity);
         for (uint256 i = 0; i < collection.capacity; i++) {
             uint256 tokenId = tokenContract.mintFromPack(
@@ -169,6 +169,8 @@ contract TokenPack is Context, VRFConsumerBase {
         _purchaseOrders[purchaseOrderId] = PurchaseOrder(
             _msgSender(), collectionId, mintedTokens, 0
         );
+
+        payable(collection.distributor).transfer(msg.value);
 
         emit PurchaseOrdered(_msgSender(), collectionId, purchaseOrderId);
         return purchaseOrderId;
