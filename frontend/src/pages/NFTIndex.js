@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import NftCard from "../components/UI/NftCard";
+import BlueprintCard from "../components/UI/BlueprintCard";
 import { contracts } from "../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
@@ -50,7 +50,7 @@ function NFTIndex() {
         const blueprintURI = await blueprint.blueprintURI(i);
 
         cardsDeck.push(
-          <NftCard
+          <BlueprintCard
             key={i}
             blueprintId={i}
             uri={blueprintURI}

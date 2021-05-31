@@ -3,11 +3,12 @@ import { contracts } from "../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
+import NftCard from "../components/UI/NftCard";
 
 function CollectionIndex() {
   const { library } = useEthers();
   const [content, setContent] = useState([]);
-  const [packContent, setPackContent] = useState();
+  const [packContent, setPackContent] = useState([]);
 
   const [totalCollectionsBigNumber] =
     useContractCall({
@@ -35,6 +36,19 @@ function CollectionIndex() {
 
       console.log("pack content:", mintedTokens);
 
+      const tokenContract = new ethers.Contract(
+        contracts.Token.address,
+        contracts.Token.abi,
+        library
+      );
+      let cardsDeck = [];
+      for(let i = 0; i < mintedTokens.length; i++) {
+        const tokenURI = await tokenContract.tokenURI(mintedTokens[i]);
+
+        cardsDeck.push(<NftCard key={i} uri={tokenURI} />);
+      }
+
+      setPackContent(cardsDeck);
       window.$("#packContent").modal("show");
     },
     [library]
@@ -102,7 +116,11 @@ function CollectionIndex() {
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div className="modal-body">{packContent}</div>
+            <div className="modal-body">
+              <div className="card-deck d-flex justify-content-center">
+                {packContent}
+              </div>
+            </div>
             <div className="modal-footer">
               <button
                 type="button"
