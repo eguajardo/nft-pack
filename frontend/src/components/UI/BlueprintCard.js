@@ -1,30 +1,29 @@
-import { ipfsPathToURL } from "../../utils/ipfs-utils";
-import useMetadata from "../../hooks/use-metadata";
-import { useState } from "react";
+import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
+import { useState, useCallback, useEffect } from "react";
 
-/**
- * @param {object} props
- * props.id: the id of the card
- * props.uri: metadata location URI
- * props.onSetSelected: function to call when selected (optional)
- * @returns
- */
-function MetadataCard(props) {
-  const metadata = useMetadata(props.uri);
+function BlueprintCard(props) {
+  const [metadata, setMetadata] = useState({});
   const [selected, setSelected] = useState(false);
 
+  const loadMetadata = useCallback(async () => {
+    const json = await loadJsonFromIPFS(props.uri);
+
+    setMetadata(json);
+  }, [props.uri]);
+
   const toggleSelected = () => {
-    // Only if callback function is defined
-    if (props.onSetSelected) {
-      if (selected) {
-        setSelected(false);
-        props.onSetSelected(props.id, false);
-      } else {
-        setSelected(true);
-        props.onSetSelected(props.id, true);
-      }
+    if (selected) {
+      setSelected(false);
+      props.setSelected(props.blueprintId, false);
+    } else {
+      setSelected(true);
+      props.setSelected(props.blueprintId, true);
     }
   };
+
+  useEffect(() => {
+    loadMetadata();
+  }, [loadMetadata]);
 
   return (
     <div
@@ -57,4 +56,4 @@ function MetadataCard(props) {
   );
 }
 
-export default MetadataCard;
+export default BlueprintCard;

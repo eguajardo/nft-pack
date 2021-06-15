@@ -3,7 +3,7 @@ import { contracts } from "../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
-import MetadataCard from "../components/UI/MetadataCard";
+import NftCard from "../components/UI/NftCard";
 
 function CollectionIndex() {
   const { library } = useEthers();
@@ -42,10 +42,10 @@ function CollectionIndex() {
         library
       );
       let cardsDeck = [];
-      for (let i = 0; i < mintedTokens.length; i++) {
+      for(let i = 0; i < mintedTokens.length; i++) {
         const tokenURI = await tokenContract.tokenURI(mintedTokens[i]);
 
-        cardsDeck.push(<MetadataCard key={i} uri={tokenURI} />);
+        cardsDeck.push(<NftCard key={i} uri={tokenURI} />);
       }
 
       setPackContent(cardsDeck);

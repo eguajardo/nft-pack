@@ -3,10 +3,9 @@ import { contracts } from "../../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
-import useMetadata from "../../hooks/use-metadata";
 
 function CollectionCard(props) {
-  const metadata = useMetadata(props.uri);
+  const [metadata, setMetadata] = useState({});
   const [requestId, setRequestId] = useState();
   const [packOpened, setPackOpened] = useState(false);
   const [walletError, setWalletError] = useState(false);
@@ -29,6 +28,12 @@ function CollectionCard(props) {
     tokenPackContract,
     "buyPack"
   );
+
+  const loadMetadata = useCallback(async () => {
+    const json = await loadJsonFromIPFS(props.uri);
+
+    setMetadata(json);
+  }, [props.uri]);
 
   const loadRequestId = useCallback(
     async (receipt) => {
@@ -104,6 +109,10 @@ function CollectionCard(props) {
   useEffect(() => {
     openPack();
   }, [openPack, block]);
+
+  useEffect(() => {
+    loadMetadata();
+  }, [loadMetadata]);
 
   const buyPack = async () => {
     if (!account) {

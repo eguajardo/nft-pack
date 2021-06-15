@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
+import BlueprintCard from "../components/UI/BlueprintCard";
 import { contracts } from "../utils/contracts-utils";
 import { ethers, utils } from "ethers";
 import { useEthers, useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
-import MetadataCard from "../components/UI/MetadataCard";
 import CollectionForm from "../components/UI/CollectionForm";
 
 function NFTIndex() {
@@ -50,11 +50,11 @@ function NFTIndex() {
         const blueprintURI = await blueprint.blueprintURI(i);
 
         cardsDeck.push(
-          <MetadataCard
+          <BlueprintCard
             key={i}
-            id={i}
+            blueprintId={i}
             uri={blueprintURI}
-            onSetSelected={setSelected}
+            setSelected={setSelected}
           />
         );
       }

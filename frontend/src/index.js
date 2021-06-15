@@ -6,27 +6,27 @@ import reportWebVitals from "./reportWebVitals";
 import { ChainId, DAppProvider } from "@usedapp/core";
 import { BrowserRouter } from "react-router-dom";
 
-const config = {
-  readOnlyChainId: ChainId.Hardhat,
-  readOnlyUrls: {
-    [ChainId.Hardhat]: "http://127.0.0.1:8545",
-  },
-  supportedChains: [ChainId.Hardhat],
-  multicallAddresses: {
-    [ChainId.Hardhat]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
-  },
-};
-
 // const config = {
-//   readOnlyChainId: ChainId.Mumbai,
+//   readOnlyChainId: ChainId.Hardhat,
 //   readOnlyUrls: {
-//     [ChainId.Mumbai]: "https://rpc-mumbai.maticvigil.com",
+//     [ChainId.Hardhat]: "http://127.0.0.1:8545",
 //   },
-//   supportedChains: [ChainId.Mumbai],
+//   supportedChains: [[ChainId.Hardhat]],
 //   multicallAddresses: {
-//     [ChainId.Mumbai]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+//     [ChainId.Hardhat]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
 //   },
 // };
+
+const config = {
+  readOnlyChainId: ChainId.Mumbai,
+  readOnlyUrls: {
+    [ChainId.Mumbai]: "https://rpc-mumbai.maticvigil.com",
+  },
+  supportedChains: [ChainId.Mumbai],
+  multicallAddresses: {
+    [ChainId.Mumbai]: "0x935Bfe9AfaA2Be26049ea4EDE40A3A2243361F87",
+  },
+};
 
 ReactDOM.render(
   <React.StrictMode>
