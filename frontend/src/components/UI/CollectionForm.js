@@ -184,7 +184,7 @@ function CollectionForm(props) {
               enteredTitleIsValid ? "form-control" : "form-control is-invalid"
             }
           />
-          <div className="invalid-feedback">Name must not be empty</div>
+          <div className="invalid-feedback">itle must not be empty</div>
         </div>
 
         <div className="form-group">

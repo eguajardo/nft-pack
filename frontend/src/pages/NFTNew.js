@@ -1,40 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { uploadFileToIPFS, uploadJsonToIPFS } from "../utils/ipfs-utils";
 import { Contract } from "@ethersproject/contracts";
 import { contracts } from "../utils/contracts-utils";
 import { utils } from "ethers";
 import { useContractFunction, useEthers } from "@usedapp/core";
-import useInput from "../hooks/use-input";
 
 function NFTNew() {
-  const {
-    value: enteredTitle,
-    isValid: enteredTitleIsValid,
-    hasError: titleInputHasError,
-    valueChangeHandler: titleChangedHandler,
-    inputBlurHandler: titleBlurHandler,
-    reset: resetTitleInput,
-  } = useInput((value) => value.trim() !== "");
-
-  const {
-    value: enteredDescription,
-    isValid: enteredDescriptionIsValid,
-    hasError: descriptionInputHasError,
-    valueChangeHandler: descriptionChangedHandler,
-    inputBlurHandler: descriptionBlurHandler,
-    reset: resetDescriptionInput,
-  } = useInput((value) => value.trim() !== "");
-
-  const {
-    value: enteredFilename,
-    files: enteredFiles,
-    isValid: enteredFileIsValid,
-    hasError: fileInputHasError,
-    valueChangeHandler: fileChangedHandler,
-    inputBlurHandler: fileBlurHandler,
-    reset: resetFileInput,
-  } = useInput((value) => value.trim() !== "");
-
+  const titleInputRef = useRef();
+  const descriptionInputRef = useRef();
+  const fileInputRef = useRef();
   const [walletError, setWalletError] = useState(false);
   const { activateBrowserWallet, account } = useEthers();
 
@@ -44,6 +18,11 @@ function NFTNew() {
     text: "Submit NFT blueprint",
     status: "None",
   });
+
+  const [enteredTitleIsValid, setEnteredTitleIsValid] = useState(true);
+  const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
+    useState(true);
+  const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
 
   const blueprintContract = new Contract(
     contracts.Blueprint.address,
@@ -88,15 +67,32 @@ function NFTNew() {
   const formSubmissionHandler = async (event) => {
     event.preventDefault();
 
-    if (
-      !enteredTitleIsValid ||
-      !enteredDescriptionIsValid ||
-      !enteredFileIsValid
-    ) {
-      // Mark them as touched if they weren't before
-      titleBlurHandler();
-      descriptionBlurHandler();
-      fileBlurHandler();
+    const enteredTitle = titleInputRef.current.value;
+    const enteredDescription = descriptionInputRef.current.value;
+    const enteredFile = fileInputRef.current.files[0];
+
+    let error = false;
+
+    if (enteredTitle.trim() === "") {
+      setEnteredTitleIsValid(false);
+      error = true;
+    } else {
+      setEnteredTitleIsValid(true);
+    }
+    if (enteredDescription.trim() === "") {
+      setEnteredDescriptionIsValid(false);
+      error = true;
+    } else {
+      setEnteredDescriptionIsValid(true);
+    }
+    if (enteredFile === undefined) {
+      setEnteredFileIsValid(false);
+      error = true;
+    } else {
+      setEnteredFileIsValid(true);
+    }
+
+    if (error) {
       return;
     }
 
@@ -133,7 +129,7 @@ function NFTNew() {
       status: ethTxState.status,
     });
 
-    const imageIpfsPath = await uploadFileToIPFS(enteredFiles[0]);
+    const imageIpfsPath = await uploadFileToIPFS(enteredFile);
 
     const metadata = {
       name: enteredTitle,
@@ -144,9 +140,9 @@ function NFTNew() {
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
     sendCreateBlueprint(metadataIpfsPath);
 
-    resetTitleInput();
-    resetDescriptionInput();
-    resetFileInput();
+    titleInputRef.current.value = "";
+    descriptionInputRef.current.value = "";
+    fileInputRef.current.value = "";
   };
 
   return (
@@ -155,15 +151,13 @@ function NFTNew() {
         <div className="form-group">
           <label htmlFor="title">Title</label>
           <input
+            ref={titleInputRef}
             type="text"
             name="title"
             id="title"
-            onChange={titleChangedHandler}
-            onBlur={titleBlurHandler}
-            value={enteredTitle}
             placeholder="Your NFT's title"
             className={
-              titleInputHasError ? "form-control is-invalid" : "form-control"
+              enteredTitleIsValid ? "form-control" : "form-control is-invalid"
             }
           />
           <div className="invalid-feedback">itle must not be empty</div>
@@ -172,17 +166,15 @@ function NFTNew() {
         <div className="form-group">
           <label htmlFor="description">Description</label>
           <input
+            ref={descriptionInputRef}
             type="text"
             name="description"
             id="description"
-            onChange={descriptionChangedHandler}
-            onBlur={descriptionBlurHandler}
-            value={enteredDescription}
             placeholder="Some description"
             className={
-              descriptionInputHasError
-                ? "form-control is-invalid"
-                : "form-control"
+              enteredDescriptionIsValid
+                ? "form-control"
+                : "form-control is-invalid"
             }
           />
           <div className="invalid-feedback">Description must not be empty</div>
@@ -191,16 +183,14 @@ function NFTNew() {
         <div className="form-group">
           <label htmlFor="image">Image</label>
           <input
+            ref={fileInputRef}
             type="file"
             name="image-file"
             id="image-file"
-            onChange={fileChangedHandler}
-            onBlur={fileBlurHandler}
-            value={enteredFilename}
             className={
-              fileInputHasError
-                ? "form-control-file is-invalid"
-                : "form-control-file"
+              enteredFileIsValid
+                ? "form-control-file"
+                : "form-control-file is-invalid"
             }
             accept="image/*"
           />
