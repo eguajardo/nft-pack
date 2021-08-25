@@ -1,4 +1,4 @@
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
+import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
 import { useState, useCallback, useEffect } from "react";
 
 function BlueprintCard(props) {

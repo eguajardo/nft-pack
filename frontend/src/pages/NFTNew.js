@@ -1,9 +1,8 @@
+import { uploadFileToIPFS, uploadJsonToIPFS } from "../helpers/ipfs";
+
 import { useRef, useState } from "react";
-import { uploadFileToIPFS, uploadJsonToIPFS } from "../utils/ipfs-utils";
-import { Contract } from "@ethersproject/contracts";
-import { contracts } from "../utils/contracts-utils";
-import { utils } from "ethers";
 import { useContractFunction, useEthers } from "@usedapp/core";
+import { useContract } from "../hooks/useContract";
 
 function NFTNew() {
   const titleInputRef = useRef();
@@ -11,6 +10,7 @@ function NFTNew() {
   const fileInputRef = useRef();
   const [walletError, setWalletError] = useState(false);
   const { activateBrowserWallet, account } = useEthers();
+  const blueprintContract = useContract("Blueprint");
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
@@ -23,11 +23,6 @@ function NFTNew() {
   const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
     useState(true);
   const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
-
-  const blueprintContract = new Contract(
-    contracts.Blueprint.address,
-    new utils.Interface(contracts.Blueprint.abi)
-  );
 
   const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
     blueprintContract,

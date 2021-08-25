@@ -1,4 +1,4 @@
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
+import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
 import { useState, useCallback, useEffect } from "react";
 
 function NftCard(props) {
@@ -15,9 +15,7 @@ function NftCard(props) {
   }, [loadMetadata]);
 
   return (
-    <div
-      className="card"
-    >
+    <div className="card">
       {metadata.image && (
         <img
           className="card-img-top"

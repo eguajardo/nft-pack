@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { uploadFileToIPFS, uploadJsonToIPFS } from "../../utils/ipfs-utils";
-import { Contract } from "@ethersproject/contracts";
-import { contracts } from "../../utils/contracts-utils";
 import { utils } from "ethers";
+import { uploadFileToIPFS, uploadJsonToIPFS } from "../../helpers/ipfs";
+
+import { useEffect, useRef, useState } from "react";
 import { useContractFunction, useEthers } from "@usedapp/core";
+import { useContract } from "../../hooks/useContract";
 
 function CollectionForm(props) {
   const nameInputRef = useRef();
@@ -13,6 +13,7 @@ function CollectionForm(props) {
   const fileInputRef = useRef();
   const [walletError, setWalletError] = useState(false);
   const { activateBrowserWallet, account } = useEthers();
+  const tokenPackContract = useContract("TokenPack");
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block",
@@ -26,11 +27,6 @@ function CollectionForm(props) {
   const [enteredPriceIsValid, setEnteredPriceIsValid] = useState(true);
   const [enteredCapacityIsValid, setEnteredCapacityIsValid] = useState(true);
   const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
-
-  const tokenPackContract = new Contract(
-    contracts.TokenPack.address,
-    new utils.Interface(contracts.TokenPack.abi)
-  );
 
   const { state: ethTxState, send: sendCreateCollection } = useContractFunction(
     tokenPackContract,

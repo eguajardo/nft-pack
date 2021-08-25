@@ -1,19 +1,24 @@
-import CollectionCard from "../components/UI/CollectionCard";
-import { contracts } from "../utils/contracts-utils";
-import { ethers, utils } from "ethers";
-import { useEthers, useContractCall } from "@usedapp/core";
+import { utils } from "ethers";
+
+import { useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
+import { useContract } from "../hooks/useContract";
+
 import NftCard from "../components/UI/NftCard";
+import CollectionCard from "../components/UI/CollectionCard";
 
 function CollectionIndex() {
-  const { library } = useEthers();
   const [content, setContent] = useState([]);
   const [packContent, setPackContent] = useState([]);
+  const tokenPackContract = useContract("TokenPack");
+  const tokenContract = useContract("Token");
+
+  console.log("tokenContract", tokenContract);
 
   const [totalCollectionsBigNumber] =
     useContractCall({
-      abi: new utils.Interface(contracts.TokenPack.abi),
-      address: contracts.TokenPack.address,
+      abi: tokenPackContract?.interface,
+      address: tokenPackContract?.address,
       method: "totalCollections",
       args: [],
     }) ?? [];
@@ -24,25 +29,14 @@ function CollectionIndex() {
 
   const showPackContent = useCallback(
     async (requestId) => {
-      const tokenPackContract = new ethers.Contract(
-        contracts.TokenPack.address,
-        contracts.TokenPack.abi,
-        library
-      );
-
       const mintedTokens = await tokenPackContract.purchaseOrderTokens(
         requestId
       );
 
       console.log("pack content:", mintedTokens);
 
-      const tokenContract = new ethers.Contract(
-        contracts.Token.address,
-        contracts.Token.abi,
-        library
-      );
       let cardsDeck = [];
-      for(let i = 0; i < mintedTokens.length; i++) {
+      for (let i = 0; i < mintedTokens.length; i++) {
         const tokenURI = await tokenContract.tokenURI(mintedTokens[i]);
 
         cardsDeck.push(<NftCard key={i} uri={tokenURI} />);
@@ -51,17 +45,11 @@ function CollectionIndex() {
       setPackContent(cardsDeck);
       window.$("#packContent").modal("show");
     },
-    [library]
+    [tokenContract, tokenPackContract]
   );
 
   const loadContent = useCallback(async () => {
     if (totalCollections) {
-      const tokenPackContract = new ethers.Contract(
-        contracts.TokenPack.address,
-        contracts.TokenPack.abi,
-        library
-      );
-
       let cardsDeck = [];
       for (let i = totalCollections - 1; i >= 0; i--) {
         const tokenCollection = await tokenPackContract.tokenCollection(i);
@@ -80,7 +68,7 @@ function CollectionIndex() {
 
       setContent(cardsDeck);
     }
-  }, [totalCollections, library, showPackContent]);
+  }, [totalCollections, showPackContent, tokenPackContract]);
 
   useEffect(() => {
     loadContent();

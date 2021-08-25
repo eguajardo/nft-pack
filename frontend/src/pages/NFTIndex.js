@@ -1,21 +1,21 @@
-import { Link } from "react-router-dom";
-import BlueprintCard from "../components/UI/BlueprintCard";
-import { contracts } from "../utils/contracts-utils";
-import { ethers, utils } from "ethers";
-import { useEthers, useContractCall } from "@usedapp/core";
+import { useContractCall } from "@usedapp/core";
 import { useState, useEffect, useCallback } from "react";
+import { useContract } from "../hooks/useContract";
+
+import { Link } from "react-router-dom";
 import CollectionForm from "../components/UI/CollectionForm";
+import BlueprintCard from "../components/UI/BlueprintCard";
 
 function NFTIndex() {
-  const { library } = useEthers();
   const [content, setContent] = useState([]);
   const [selectedBlueprints, setSelectedBlueprints] = useState([]);
   const [collectionCreation, setCollectionCreation] = useState(false);
+  const blueprintContract = useContract("Blueprint");
 
   const [totalBlueprintsBigNumber] =
     useContractCall({
-      abi: new utils.Interface(contracts.Blueprint.abi),
-      address: contracts.Blueprint.address,
+      abi: blueprintContract?.interface,
+      address: blueprintContract?.address,
       method: "totalBlueprints",
       args: [],
     }) ?? [];
@@ -39,15 +39,9 @@ function NFTIndex() {
 
   const loadContent = useCallback(async () => {
     if (totalBlueprints) {
-      const blueprint = new ethers.Contract(
-        contracts.Blueprint.address,
-        contracts.Blueprint.abi,
-        library
-      );
-
       let cardsDeck = [];
       for (let i = totalBlueprints - 1; i >= 0; i--) {
-        const blueprintURI = await blueprint.blueprintURI(i);
+        const blueprintURI = await blueprintContract.blueprintURI(i);
 
         cardsDeck.push(
           <BlueprintCard
@@ -61,7 +55,7 @@ function NFTIndex() {
 
       setContent(cardsDeck);
     }
-  }, [totalBlueprints, library]);
+  }, [totalBlueprints, blueprintContract]);
 
   const openCollectionForm = () => {
     setCollectionCreation(true);

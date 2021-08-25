@@ -135,24 +135,24 @@ async function loadTestData(blueprint: Contract, tokenPack: Contract) {
 
 function saveFrontEndFiles(contractsId: { name: string; address: string }[]) {
   const fs = require("fs");
-  const javascriptDir = __dirname + "/../frontend/src/utils";
+  const javascriptDir = __dirname + "/../frontend/src/helpers";
 
   if (!fs.existsSync(javascriptDir)) {
     fs.mkdirSync(javascriptDir);
   }
 
-  let contracts: any = {};
+  let contracts: any = { [network.name]: {} };
   for (let i = 0; i < contractsId.length; i++) {
     const artifact = artifacts.readArtifactSync(contractsId[i].name);
 
-    contracts[contractsId[i].name] = {
+    contracts[network.name][contractsId[i].name] = {
       address: contractsId[i].address,
       abi: artifact.abi,
     };
   }
 
   fs.writeFileSync(
-    javascriptDir + "/contracts-utils.js",
+    javascriptDir + "/contracts.js",
     "export const contracts = " + JSON.stringify(contracts, null, 2) + ";"
   );
 }

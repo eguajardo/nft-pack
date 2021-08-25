@@ -1,28 +1,24 @@
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../utils/ipfs-utils";
-import { contracts } from "../../utils/contracts-utils";
-import { ethers, utils } from "ethers";
+import { utils } from "ethers";
+import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
+
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
+import { useContract } from "../../hooks/useContract";
 
 function CollectionCard(props) {
   const [metadata, setMetadata] = useState({});
   const [requestId, setRequestId] = useState();
   const [packOpened, setPackOpened] = useState(false);
   const [walletError, setWalletError] = useState(false);
-  const { activateBrowserWallet, account, library } = useEthers();
+  const { activateBrowserWallet, account } = useEthers();
   const block = useBlockNumber();
+  const tokenPackContract = useContract("TokenPack");
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block mt-2",
     disabled: false,
     text: "Buy",
   });
-
-  const tokenPackContract = new ethers.Contract(
-    contracts.TokenPack.address,
-    contracts.TokenPack.abi,
-    library
-  );
 
   const { state: ethTxState, send: sendBuyPack } = useContractFunction(
     tokenPackContract,
@@ -55,7 +51,7 @@ function CollectionCard(props) {
         setPackOpened(false);
       }
     },
-    [account, props.collectionId]
+    [account, props.collectionId, tokenPackContract]
   );
 
   const openPack = useCallback(async () => {
@@ -75,7 +71,7 @@ function CollectionCard(props) {
         props.showPackContent(requestId);
       }
     }
-  }, [requestId, packOpened, props]);
+  }, [requestId, packOpened, props, tokenPackContract]);
 
   useEffect(() => {
     console.log("ethState:", ethTxState);
