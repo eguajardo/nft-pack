@@ -1,13 +1,13 @@
 import { uploadFileToIPFS, uploadJsonToIPFS } from "../helpers/ipfs";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useFormFields } from "../hooks/useFormFields";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "../hooks/useContract";
 
+import FormGroup from "../components/UI/FormGroup";
+
 function NFTNew() {
-  const titleInputRef = useRef();
-  const descriptionInputRef = useRef();
-  const fileInputRef = useRef();
   const [walletError, setWalletError] = useState(false);
   const { activateBrowserWallet, account } = useEthers();
   const blueprintContract = useContract("Blueprint");
@@ -19,10 +19,47 @@ function NFTNew() {
     status: "None",
   });
 
-  const [enteredTitleIsValid, setEnteredTitleIsValid] = useState(true);
-  const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
-    useState(true);
-  const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
+  const {
+    formFields,
+    createValueChangeHandler,
+    createInputBlurHandler,
+    validateForm,
+    hasError,
+    resetForm,
+  } = useFormFields({
+    title: {
+      type: "text",
+      id: "title",
+      label: "Title",
+      placeholder: "Your NFT's title",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Title must not be empty!";
+        }
+      },
+    },
+    description: {
+      type: "text",
+      id: "description",
+      label: "Description",
+      placeholder: "Some description",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Description must not be empty!";
+        }
+      },
+    },
+    image: {
+      type: "file",
+      id: "image",
+      label: "Image",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Image is missing!";
+        }
+      },
+    },
+  });
 
   const { state: ethTxState, send: sendCreateBlueprint } = useContractFunction(
     blueprintContract,
@@ -62,32 +99,7 @@ function NFTNew() {
   const formSubmissionHandler = async (event) => {
     event.preventDefault();
 
-    const enteredTitle = titleInputRef.current.value;
-    const enteredDescription = descriptionInputRef.current.value;
-    const enteredFile = fileInputRef.current.files[0];
-
-    let error = false;
-
-    if (enteredTitle.trim() === "") {
-      setEnteredTitleIsValid(false);
-      error = true;
-    } else {
-      setEnteredTitleIsValid(true);
-    }
-    if (enteredDescription.trim() === "") {
-      setEnteredDescriptionIsValid(false);
-      error = true;
-    } else {
-      setEnteredDescriptionIsValid(true);
-    }
-    if (enteredFile === undefined) {
-      setEnteredFileIsValid(false);
-      error = true;
-    } else {
-      setEnteredFileIsValid(true);
-    }
-
-    if (error) {
+    if (!validateForm()) {
       return;
     }
 
@@ -124,73 +136,44 @@ function NFTNew() {
       status: ethTxState.status,
     });
 
-    const imageIpfsPath = await uploadFileToIPFS(enteredFile);
+    const imageIpfsPath = await uploadFileToIPFS(
+      formFields.image.enteredFiles[0]
+    );
 
     const metadata = {
-      name: enteredTitle,
-      description: enteredDescription,
+      name: formFields.title.value,
+      description: formFields.description.value,
       image: "ipfs://" + imageIpfsPath,
     };
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
     sendCreateBlueprint(metadataIpfsPath);
 
-    titleInputRef.current.value = "";
-    descriptionInputRef.current.value = "";
-    fileInputRef.current.value = "";
+    resetForm();
   };
 
   return (
     <div className="container content-container">
       <form onSubmit={formSubmissionHandler}>
-        <div className="form-group">
-          <label htmlFor="title">Title</label>
-          <input
-            ref={titleInputRef}
-            type="text"
-            name="title"
-            id="title"
-            placeholder="Your NFT's title"
-            className={
-              enteredTitleIsValid ? "form-control" : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">itle must not be empty</div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <input
-            ref={descriptionInputRef}
-            type="text"
-            name="description"
-            id="description"
-            placeholder="Some description"
-            className={
-              enteredDescriptionIsValid
-                ? "form-control"
-                : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">Description must not be empty</div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="image">Image</label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="image-file"
-            id="image-file"
-            className={
-              enteredFileIsValid
-                ? "form-control-file"
-                : "form-control-file is-invalid"
-            }
-            accept="image/*"
-          />
-          <div className="invalid-feedback">Image is missing!</div>
-        </div>
+        <FormGroup
+          formField={formFields.title}
+          hasError={hasError(formFields.title)}
+          valueChangeHandler={createValueChangeHandler("title")}
+          inputBlurHandler={createInputBlurHandler("title")}
+        />
+        <FormGroup
+          formField={formFields.description}
+          hasError={hasError(formFields.description)}
+          valueChangeHandler={createValueChangeHandler("description")}
+          inputBlurHandler={createInputBlurHandler("description")}
+        />
+        <FormGroup
+          formField={formFields.image}
+          hasError={hasError(formFields.image)}
+          previewClass="img-thumbnail mb-4"
+          valueChangeHandler={createValueChangeHandler("image")}
+          inputBlurHandler={createInputBlurHandler("image")}
+        />
 
         <div id="actions" className="mt-4">
           {(ethTxState.status === "Exception" ||
