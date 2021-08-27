@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 function mergeAttributes(prev, key, changedAttrs) {
   return {
@@ -36,7 +36,7 @@ export function useFormFields(initialValues) {
     return null;
   };
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     let isValid = true;
 
     for (const key in formFields) {
@@ -55,16 +55,16 @@ export function useFormFields(initialValues) {
     }
 
     return isValid;
-  };
+  }, [formFields]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     for (const key in formFields) {
       formFields[key].isTouched = false;
       formFields[key].value = "";
     }
 
     setFormFields(formFields);
-  };
+  }, [formFields]);
 
   const createValueChangeHandler = (key) => (event) => {
     const changedAttrs = {};

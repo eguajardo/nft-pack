@@ -1,16 +1,14 @@
 import { utils } from "ethers";
 import { uploadFileToIPFS, uploadJsonToIPFS } from "../../helpers/ipfs";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormFields } from "../../hooks/useFormFields";
 import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "../../hooks/useContract";
 
+import FormGroup from "./FormGroup";
+
 function CollectionForm(props) {
-  const nameInputRef = useRef();
-  const descriptionInputRef = useRef();
-  const priceInputRef = useRef();
-  const capacityInputRef = useRef();
-  const fileInputRef = useRef();
   const [walletError, setWalletError] = useState(false);
   const { activateBrowserWallet, account } = useEthers();
   const tokenPackContract = useContract("TokenPack");
@@ -21,12 +19,69 @@ function CollectionForm(props) {
     text: "Submit collection",
   });
 
-  const [enteredTitleIsValid, setEnteredNameIsValid] = useState(true);
-  const [enteredDescriptionIsValid, setEnteredDescriptionIsValid] =
-    useState(true);
-  const [enteredPriceIsValid, setEnteredPriceIsValid] = useState(true);
-  const [enteredCapacityIsValid, setEnteredCapacityIsValid] = useState(true);
-  const [enteredFileIsValid, setEnteredFileIsValid] = useState(true);
+  const {
+    formFields,
+    createValueChangeHandler,
+    createInputBlurHandler,
+    validateForm,
+    hasError,
+    resetForm,
+  } = useFormFields({
+    name: {
+      type: "text",
+      id: "name",
+      label: "Name",
+      placeholder: "Your collection's name",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Name must not be empty!";
+        }
+      },
+    },
+    description: {
+      type: "text",
+      id: "description",
+      label: "Description",
+      placeholder: "Some description",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Description must not be empty!";
+        }
+      },
+    },
+    price: {
+      type: "number",
+      id: "price",
+      label: "Price per pack (MATIC token)",
+      step: 0.001,
+      validator: (field) => {
+        if (!field.value || field.value <= 0) {
+          return "Price must be grater than 0!";
+        }
+      },
+    },
+    capacity: {
+      type: "number",
+      id: "capacity",
+      label: "Cards per booster pack",
+      step: 1,
+      validator: (field) => {
+        if (!field.value || field.value <= 0) {
+          return "Cards per booster must be grater than 0!";
+        }
+      },
+    },
+    image: {
+      type: "file",
+      id: "image",
+      label: "Cover Image",
+      validator: (field) => {
+        if (!field.value || field.value.trim() === "") {
+          return "Image is missing!";
+        }
+      },
+    },
+  });
 
   const { state: ethTxState, send: sendCreateCollection } = useContractFunction(
     tokenPackContract,
@@ -43,11 +98,7 @@ function CollectionForm(props) {
         text: "Success!",
       });
 
-      nameInputRef.current.value = "";
-      descriptionInputRef.current.value = "";
-      priceInputRef.current.value = 0.0;
-      capacityInputRef.current.value = 0;
-      fileInputRef.current.value = "";
+      resetForm();
     } else if (
       ethTxState.status === "Exception" ||
       ethTxState.status === "Fail"
@@ -64,51 +115,12 @@ function CollectionForm(props) {
         text: "Processing...",
       });
     }
-  }, [ethTxState]);
+  }, [ethTxState, resetForm]);
 
   const formSubmissionHandler = async (event) => {
     event.preventDefault();
 
-    const enteredName = nameInputRef.current.value;
-    const enteredDescription = descriptionInputRef.current.value;
-    const enteredPrice = priceInputRef.current.value;
-    const enteredCapacity = capacityInputRef.current.value;
-    const enteredFile = fileInputRef.current.files[0];
-
-    let error = false;
-
-    if (enteredName.trim() === "") {
-      setEnteredNameIsValid(false);
-      error = true;
-    } else {
-      setEnteredNameIsValid(true);
-    }
-    if (enteredDescription.trim() === "") {
-      setEnteredDescriptionIsValid(false);
-      error = true;
-    } else {
-      setEnteredDescriptionIsValid(true);
-    }
-    if (enteredPrice <= 0.0) {
-      setEnteredPriceIsValid(false);
-      error = true;
-    } else {
-      setEnteredPriceIsValid(true);
-    }
-    if (enteredCapacity <= 0) {
-      setEnteredCapacityIsValid(false);
-      error = true;
-    } else {
-      setEnteredCapacityIsValid(true);
-    }
-    if (enteredFile === undefined) {
-      setEnteredFileIsValid(false);
-      error = true;
-    } else {
-      setEnteredFileIsValid(true);
-    }
-
-    if (error) {
+    if (!validateForm()) {
       return;
     }
 
@@ -142,11 +154,13 @@ function CollectionForm(props) {
       text: "Processing...",
     });
 
-    const imageIpfsPath = await uploadFileToIPFS(enteredFile);
+    const imageIpfsPath = await uploadFileToIPFS(
+      formFields.image.enteredFiles[0]
+    );
 
     const metadata = {
-      name: enteredName,
-      description: enteredDescription,
+      name: formFields.name.value,
+      description: formFields.description.value,
       image: "ipfs://" + imageIpfsPath,
     };
 
@@ -155,8 +169,8 @@ function CollectionForm(props) {
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
     sendCreateCollection(
       metadataIpfsPath,
-      utils.parseEther(enteredPrice),
-      enteredCapacity,
+      utils.parseEther(formFields.price.value),
+      formFields.capacity.value,
       props.selectedBlueprints
     );
   };
@@ -168,88 +182,37 @@ function CollectionForm(props) {
       </button>
       <br />
       <form onSubmit={formSubmissionHandler}>
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            ref={nameInputRef}
-            type="text"
-            name="name"
-            id="name"
-            placeholder="Your collection's name"
-            className={
-              enteredTitleIsValid ? "form-control" : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">itle must not be empty</div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <input
-            ref={descriptionInputRef}
-            type="text"
-            name="description"
-            id="description"
-            placeholder="Some description"
-            className={
-              enteredDescriptionIsValid
-                ? "form-control"
-                : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">Description must not be empty</div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="price">Price per pack</label>
-          <input
-            ref={priceInputRef}
-            type="number"
-            name="price"
-            step="0.01"
-            id="price"
-            className={
-              enteredPriceIsValid ? "form-control" : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">Price must be grater than 0</div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="capacity">Cards per booster pack</label>
-          <input
-            ref={capacityInputRef}
-            type="number"
-            name="capacity"
-            step="1"
-            id="capacity"
-            className={
-              enteredCapacityIsValid
-                ? "form-control"
-                : "form-control is-invalid"
-            }
-          />
-          <div className="invalid-feedback">
-            Cards per booster must be grater than 0
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="image">Image</label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="image-file"
-            id="image-file"
-            className={
-              enteredFileIsValid
-                ? "form-control-file"
-                : "form-control-file is-invalid"
-            }
-            accept="image/*"
-          />
-          <div className="invalid-feedback">Image is missing!</div>
-        </div>
+        <FormGroup
+          formField={formFields.name}
+          hasError={hasError(formFields.name)}
+          valueChangeHandler={createValueChangeHandler("name")}
+          inputBlurHandler={createInputBlurHandler("name")}
+        />
+        <FormGroup
+          formField={formFields.description}
+          hasError={hasError(formFields.description)}
+          valueChangeHandler={createValueChangeHandler("description")}
+          inputBlurHandler={createInputBlurHandler("description")}
+        />
+        <FormGroup
+          formField={formFields.price}
+          hasError={hasError(formFields.price)}
+          valueChangeHandler={createValueChangeHandler("price")}
+          inputBlurHandler={createInputBlurHandler("price")}
+        />
+        <FormGroup
+          formField={formFields.capacity}
+          hasError={hasError(formFields.capacity)}
+          valueChangeHandler={createValueChangeHandler("capacity")}
+          inputBlurHandler={createInputBlurHandler("capacity")}
+        />
+        <FormGroup
+          formField={formFields.image}
+          hasError={hasError(formFields.image)}
+          previewClass="img-thumbnail mb-4"
+          valueChangeHandler={createValueChangeHandler("image")}
+          inputBlurHandler={createInputBlurHandler("image")}
+        />
 
         <div id="actions" className="mt-4">
           {(ethTxState.status === "Exception" ||
