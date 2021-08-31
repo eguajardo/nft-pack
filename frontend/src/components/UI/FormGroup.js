@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ipfsPathToURL } from "../../helpers/ipfs";
 
 function FormGroup(props) {
@@ -8,15 +9,19 @@ function FormGroup(props) {
     className += " is-invalid";
   }
 
-  let previewSrc = props.previewSrc;
-  let fileInputLabel = "[Choose file]";
-  if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
-    previewSrc = URL.createObjectURL(props.formField.enteredFiles[0]);
-    fileInputLabel = props.formField.enteredFiles[0].name;
-  } else if (previewSrc) {
-    previewSrc = ipfsPathToURL(props.previewSrc);
-    fileInputLabel = "[Change file]";
-  }
+  const [previewSrc, fileInputLabel] = useMemo(() => {
+    let source = props.previewSrc;
+    let label = "[Choose file]";
+    if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
+      source = URL.createObjectURL(props.formField.enteredFiles[0]);
+      label = props.formField.enteredFiles[0].name;
+    } else if (source) {
+      source = ipfsPathToURL(props.previewSrc);
+      label = "[Change file]";
+    }
+
+    return [source, label];
+  }, [props.formField.enteredFiles, props.previewSrc]);
 
   console.log("previewSrc", previewSrc);
 
