@@ -94,8 +94,12 @@ export const loadJsonFromIPFS = async (ipfsPath) => {
  * @returns a string representing the resulting URL
  */
 export const ipfsPathToURL = (ipfsPath) => {
-  return `${ipfsReader.protocol}://${ipfsReader.host}/ipfs/${ipfsPath.replace(
-    "ipfs://",
-    ""
-  )}`;
+  if (ipfsPath) {
+    return `${ipfsReader.protocol}://${ipfsReader.host}/ipfs/${ipfsPath.replace(
+      "ipfs://",
+      ""
+    )}`;
+  } else {
+    return ipfsPath;
+  }
 };

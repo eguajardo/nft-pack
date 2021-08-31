@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ipfsPathToURL } from "../../helpers/ipfs";
 
 function FormGroup(props) {
@@ -8,15 +9,21 @@ function FormGroup(props) {
     className += " is-invalid";
   }
 
-  let previewSrc = props.previewSrc;
-  let imageInputLabel = "[Choose image]";
-  if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
-    previewSrc = URL.createObjectURL(props.formField.enteredFiles[0]);
-    imageInputLabel = props.formField.enteredFiles[0].name;
-  } else if (previewSrc) {
-    previewSrc = ipfsPathToURL(props.previewSrc);
-    imageInputLabel = "[Change image]";
-  }
+  const [previewSrc, fileInputLabel] = useMemo(() => {
+    let source = props.previewSrc;
+    let label = "[Choose file]";
+    if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
+      source = URL.createObjectURL(props.formField.enteredFiles[0]);
+      label = props.formField.enteredFiles[0].name;
+    } else if (source) {
+      source = ipfsPathToURL(props.previewSrc);
+      label = "[Change file]";
+    }
+
+    return [source, label];
+  }, [props.formField.enteredFiles, props.previewSrc]);
+
+  console.log("previewSrc", previewSrc);
 
   let inputField;
   if (props.formField.type === "textarea") {
@@ -46,6 +53,7 @@ function FormGroup(props) {
         step={props.formField.step}
         className={className}
         disabled={props.disabled}
+        accept="image/*, video/mp4"
       />
     );
   }
@@ -57,19 +65,23 @@ function FormGroup(props) {
       )}
       {previewSrc && (
         <div>
-          <img
-            accept="image/*"
-            src={previewSrc}
-            alt="Profile"
+          <video
+            key={previewSrc}
+            autoPlay
+            muted
+            loop
+            poster={previewSrc}
             className={props.previewClass}
-          />
+          >
+            <source src={previewSrc} />
+          </video>
         </div>
       )}
       <div className={props.formField.type === "file" ? "custom-file" : ""}>
         {inputField}
         {props.formField.type === "file" && (
           <label className="custom-file-label" htmlFor="customFile">
-            {imageInputLabel}
+            {fileInputLabel}
           </label>
         )}
         <div className="invalid-feedback">{props.hasError}</div>

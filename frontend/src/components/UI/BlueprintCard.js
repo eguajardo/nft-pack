@@ -5,6 +5,8 @@ function BlueprintCard(props) {
   const [metadata, setMetadata] = useState({});
   const [selected, setSelected] = useState(false);
 
+  const source = ipfsPathToURL(metadata.image);
+
   const loadMetadata = useCallback(async () => {
     const json = await loadJsonFromIPFS(props.uri);
 
@@ -31,11 +33,16 @@ function BlueprintCard(props) {
       onClick={toggleSelected}
     >
       {metadata.image && (
-        <img
+        <video
+          key={source}
+          autoPlay
+          muted
+          loop
+          poster={source}
           className="card-img-top"
-          alt={metadata.name}
-          src={ipfsPathToURL(metadata.image)}
-        />
+        >
+          <source src={source} />
+        </video>
       )}
       <div className="card-body">
         {metadata.name && (
