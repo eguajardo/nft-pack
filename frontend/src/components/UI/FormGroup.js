@@ -48,6 +48,7 @@ function FormGroup(props) {
         step={props.formField.step}
         className={className}
         disabled={props.disabled}
+        accept="image/*, video/mp4"
       />
     );
   }
