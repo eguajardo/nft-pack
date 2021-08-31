@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 function NftCard(props) {
   const [metadata, setMetadata] = useState({});
 
+  const source = ipfsPathToURL(metadata.image);
+
   const loadMetadata = useCallback(async () => {
     const json = await loadJsonFromIPFS(props.uri);
 
@@ -17,11 +19,16 @@ function NftCard(props) {
   return (
     <div className="card">
       {metadata.image && (
-        <img
+        <video
+          key={source}
+          autoPlay
+          muted
+          loop
+          poster={source}
           className="card-img-top"
-          alt={metadata.name}
-          src={ipfsPathToURL(metadata.image)}
-        />
+        >
+          <source src={source} />
+        </video>
       )}
       <div className="card-body">
         {metadata.name && (

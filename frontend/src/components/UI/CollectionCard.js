@@ -14,6 +14,8 @@ function CollectionCard(props) {
   const block = useBlockNumber();
   const tokenPackContract = useContract("TokenPack");
 
+  const source = ipfsPathToURL(metadata.image);
+
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block mt-2",
     disabled: false,
@@ -147,11 +149,16 @@ function CollectionCard(props) {
       <div className="row">
         <div className="col-6">
           {metadata.image && (
-            <img
-              className="card-image"
-              alt={metadata.name}
-              src={ipfsPathToURL(metadata.image)}
-            />
+            <video
+              key={source}
+              autoPlay
+              muted
+              loop
+              poster={source}
+              className="card-img-top"
+            >
+              <source src={source} />
+            </video>
           )}
         </div>
         <div className="col-6">

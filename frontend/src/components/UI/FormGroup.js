@@ -9,14 +9,16 @@ function FormGroup(props) {
   }
 
   let previewSrc = props.previewSrc;
-  let imageInputLabel = "[Choose image]";
+  let fileInputLabel = "[Choose file]";
   if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
     previewSrc = URL.createObjectURL(props.formField.enteredFiles[0]);
-    imageInputLabel = props.formField.enteredFiles[0].name;
+    fileInputLabel = props.formField.enteredFiles[0].name;
   } else if (previewSrc) {
     previewSrc = ipfsPathToURL(props.previewSrc);
-    imageInputLabel = "[Change image]";
+    fileInputLabel = "[Change file]";
   }
+
+  console.log("previewSrc", previewSrc);
 
   let inputField;
   if (props.formField.type === "textarea") {
@@ -57,19 +59,23 @@ function FormGroup(props) {
       )}
       {previewSrc && (
         <div>
-          <img
-            accept="image/*"
-            src={previewSrc}
-            alt="Profile"
+          <video
+            key={previewSrc}
+            autoPlay
+            muted
+            loop
+            poster={previewSrc}
             className={props.previewClass}
-          />
+          >
+            <source src={previewSrc} />
+          </video>
         </div>
       )}
       <div className={props.formField.type === "file" ? "custom-file" : ""}>
         {inputField}
         {props.formField.type === "file" && (
           <label className="custom-file-label" htmlFor="customFile">
-            {imageInputLabel}
+            {fileInputLabel}
           </label>
         )}
         <div className="invalid-feedback">{props.hasError}</div>
