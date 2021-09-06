@@ -1,10 +1,10 @@
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
+import { loadJsonFromIPFS } from "../../helpers/ipfs";
 import { useState, useCallback, useEffect } from "react";
+
+import Player from "./Player";
 
 function NftCard(props) {
   const [metadata, setMetadata] = useState({});
-
-  const source = ipfsPathToURL(metadata.image);
 
   const loadMetadata = useCallback(async () => {
     const json = await loadJsonFromIPFS(props.uri);
@@ -19,16 +19,11 @@ function NftCard(props) {
   return (
     <div className="card">
       {metadata.image && (
-        <video
-          key={source}
-          autoPlay
-          muted
-          loop
-          poster={source}
+        <Player
+          image={metadata.image}
+          animation_url={metadata.animation_url}
           className="card-img-top"
-        >
-          <source src={source} />
-        </video>
+        />
       )}
       <div className="card-body">
         {metadata.name && (
