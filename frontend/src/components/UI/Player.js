@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import { ipfsPathToURL } from "../../helpers/ipfs";
+
+import { useEffect, useRef, useState } from "react";
+
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlayCircle } from "@fortawesome/free-regular-svg-icons";
 
 function Player(props) {
   const [isPreview, setPreview] = useState(true);
@@ -10,7 +14,7 @@ function Player(props) {
   const image = ipfsPathToURL(props.image);
   const animation = ipfsPathToURL(props.animation_url);
 
-  const play = (event) => {
+  const play = () => {
     if (animation) {
       console.log(
         "videoPreviewRef.current.currentTime",
@@ -34,18 +38,24 @@ function Player(props) {
   return (
     <div>
       {isPreview && (
-        <video
-          key={"image_" + image}
-          ref={videoPreviewRef}
-          autoPlay
-          muted
-          loop
-          poster={image}
-          className={props.className}
-          onClick={play}
-        >
-          <source src={image} />
-        </video>
+        <div>
+          <video
+            key={"image_" + image}
+            ref={videoPreviewRef}
+            autoPlay
+            muted
+            loop
+            poster={image}
+            className={props.className}
+          >
+            <source src={image} />
+          </video>
+          {animation && (
+            <div className="play-button" onClick={play}>
+              <FontAwesomeIcon icon={faPlayCircle} />
+            </div>
+          )}
+        </div>
       )}
 
       {!isPreview && (
