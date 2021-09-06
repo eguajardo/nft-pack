@@ -30,7 +30,7 @@ export function useFormFields(initialValues) {
 
   const hasError = (key) => {
     if (key.isTouched && key.validator) {
-      return key.validator(key);
+      return key.validator(key, formFields);
     }
 
     return null;
@@ -42,7 +42,7 @@ export function useFormFields(initialValues) {
     for (const key in formFields) {
       if (
         formFields[key].validator &&
-        formFields[key].validator(formFields[key])
+        formFields[key].validator(formFields[key], formFields)
       ) {
         isValid = false;
         break;

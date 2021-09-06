@@ -1,9 +1,11 @@
 import { utils } from "ethers";
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
+import { loadJsonFromIPFS } from "../../helpers/ipfs";
 
 import { useState, useCallback, useEffect } from "react";
 import { useContractFunction, useEthers, useBlockNumber } from "@usedapp/core";
 import { useContract } from "../../hooks/useContract";
+
+import Player from "./Player";
 
 function CollectionCard(props) {
   const [metadata, setMetadata] = useState({});
@@ -13,8 +15,6 @@ function CollectionCard(props) {
   const { activateBrowserWallet, account } = useEthers();
   const block = useBlockNumber();
   const tokenPackContract = useContract("TokenPack");
-
-  const source = ipfsPathToURL(metadata.image);
 
   const [buttonState, setButtonState] = useState({
     class: "btn btn-primary btn-lg btn-block mt-2",
@@ -149,16 +149,11 @@ function CollectionCard(props) {
       <div className="row">
         <div className="col-6">
           {metadata.image && (
-            <video
-              key={source}
-              autoPlay
-              muted
-              loop
-              poster={source}
+            <Player
+              image={metadata.image}
+              animation_url={metadata.animation_url}
               className="card-img-top"
-            >
-              <source src={source} />
-            </video>
+            />
           )}
         </div>
         <div className="col-6">

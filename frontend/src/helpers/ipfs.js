@@ -7,7 +7,7 @@ const ipfsWriter = new IPFS({
 });
 
 const ipfsReader = {
-  host: "dweb.link",
+  host: "infura-ipfs.io",
   protocol: "https",
 };
 

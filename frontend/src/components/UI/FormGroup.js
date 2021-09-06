@@ -10,18 +10,18 @@ function FormGroup(props) {
   }
 
   const [previewSrc, fileInputLabel] = useMemo(() => {
-    let source = props.previewSrc;
+    let source = props.preview?.source;
     let label = "[Choose file]";
     if (props.formField.enteredFiles && props.formField.enteredFiles[0]) {
       source = URL.createObjectURL(props.formField.enteredFiles[0]);
       label = props.formField.enteredFiles[0].name;
     } else if (source) {
-      source = ipfsPathToURL(props.previewSrc);
+      source = ipfsPathToURL(props.preview.source);
       label = "[Change file]";
     }
 
     return [source, label];
-  }, [props.formField.enteredFiles, props.previewSrc]);
+  }, [props.formField.enteredFiles, props.preview?.source]);
 
   console.log("previewSrc", previewSrc);
 
@@ -67,11 +67,11 @@ function FormGroup(props) {
         <div>
           <video
             key={previewSrc}
-            autoPlay
-            muted
-            loop
+            autoPlay={props.preview?.autoPlay}
+            loop={props.preview?.loop}
+            controls={props.preview?.controls}
             poster={previewSrc}
-            className={props.previewClass}
+            className={props.preview?.className}
           >
             <source src={previewSrc} />
           </video>

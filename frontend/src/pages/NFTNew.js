@@ -6,6 +6,7 @@ import { useContractFunction, useEthers } from "@usedapp/core";
 import { useContract } from "../hooks/useContract";
 
 import FormGroup from "../components/UI/FormGroup";
+import { getVideoPoster } from "../helpers/videoPoster";
 
 function NFTNew() {
   const [walletError, setWalletError] = useState(false);
@@ -52,10 +53,31 @@ function NFTNew() {
     image: {
       type: "file",
       id: "image",
-      label: "Image",
-      validator: (field) => {
-        if (!field.value || field.value.trim() === "") {
-          return "Image is missing!";
+      label: "Display image (leave blank to use first frame of animation)",
+      validator: (field, formFields) => {
+        if (
+          formFields &&
+          (!field.value || field.value.trim() === "") &&
+          (!formFields.animation.value ||
+            formFields.animation.value.trim() === "")
+        ) {
+          return "At least a display image or animation needs to be specified!";
+        }
+      },
+    },
+    animation: {
+      type: "file",
+      id: "animation",
+      label: "Animation",
+      validator: (field, formFields) => {
+        console.log("formFields", formFields);
+        console.log("formFields.image", formFields?.image);
+        if (
+          formFields &&
+          (!field.value || field.value.trim() === "") &&
+          (!formFields.image.value || formFields.image.value.trim() === "")
+        ) {
+          return "At least a display image or animation needs to be specified!";
         }
       },
     },
@@ -136,15 +158,34 @@ function NFTNew() {
       status: ethTxState.status,
     });
 
-    const imageIpfsPath = await uploadFileToIPFS(
-      formFields.image.enteredFiles[0]
-    );
+    let imageFile;
+    if (!formFields.image.value || formFields.image.value.trim() === "") {
+      console.log("Display image not provided, taking it from animation");
+      imageFile = await getVideoPoster(
+        URL.createObjectURL(formFields.animation.enteredFiles[0])
+      );
+    } else {
+      imageFile = formFields.image.enteredFiles[0];
+    }
+
+    const imageIpfsPath = await uploadFileToIPFS(imageFile);
 
     const metadata = {
       name: formFields.title.value,
       description: formFields.description.value,
       image: "ipfs://" + imageIpfsPath,
     };
+
+    if (
+      formFields.animation.value &&
+      formFields.animation.value.trim() !== ""
+    ) {
+      metadata.animation_url =
+        "ipfs://" +
+        (await uploadFileToIPFS(formFields.animation.enteredFiles[0]));
+    }
+
+    console.log("metadata", metadata);
 
     const metadataIpfsPath = await uploadJsonToIPFS(metadata);
     sendCreateBlueprint(metadataIpfsPath);
@@ -170,9 +211,26 @@ function NFTNew() {
         <FormGroup
           formField={formFields.image}
           hasError={hasError(formFields.image)}
-          previewClass="img-thumbnail mb-4"
+          preview={{
+            autoPlay: true,
+            loop: true,
+            controls: false,
+            className: "img-thumbnail mb-4 card-image",
+          }}
           valueChangeHandler={createValueChangeHandler("image")}
           inputBlurHandler={createInputBlurHandler("image")}
+        />
+        <FormGroup
+          formField={formFields.animation}
+          hasError={hasError(formFields.animation)}
+          preview={{
+            autoPlay: false,
+            loop: true,
+            controls: true,
+            className: "img-thumbnail mb-4 card-image",
+          }}
+          valueChangeHandler={createValueChangeHandler("animation")}
+          inputBlurHandler={createInputBlurHandler("animation")}
         />
 
         <div id="actions" className="mt-4">

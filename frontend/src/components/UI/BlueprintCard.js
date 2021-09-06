@@ -1,11 +1,11 @@
-import { loadJsonFromIPFS, ipfsPathToURL } from "../../helpers/ipfs";
+import { loadJsonFromIPFS } from "../../helpers/ipfs";
 import { useState, useCallback, useEffect } from "react";
+
+import Player from "./Player";
 
 function BlueprintCard(props) {
   const [metadata, setMetadata] = useState({});
   const [selected, setSelected] = useState(false);
-
-  const source = ipfsPathToURL(metadata.image);
 
   const loadMetadata = useCallback(async () => {
     const json = await loadJsonFromIPFS(props.uri);
@@ -33,16 +33,11 @@ function BlueprintCard(props) {
       onClick={toggleSelected}
     >
       {metadata.image && (
-        <video
-          key={source}
-          autoPlay
-          muted
-          loop
-          poster={source}
+        <Player
+          image={metadata.image}
+          animation_url={metadata.animation_url}
           className="card-img-top"
-        >
-          <source src={source} />
-        </video>
+        />
       )}
       <div className="card-body">
         {metadata.name && (
